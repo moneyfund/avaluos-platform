@@ -90,14 +90,14 @@ async function uploadEvidence(tenantId: string, avaluoId: string, form: any) {
   return uploaded;
 }
 
-export async function saveTenantAvaluo({ tenantId, user, tipo, form, result }: any) {
+export async function saveTenantAvaluo({ tenantId, user, tipo, form, result, reportConfig }: any) {
   if (!db || !storage) throw new Error('Firebase no está configurado completamente.');
   if (!tenantId || !user?.uid) throw new Error('No existe una organización o usuario válido.');
 
   await assertTenantCanCreateAvaluo(tenantId, tipo);
 
   const avaluoRef = doc(collection(db, 'avaluos'));
-  const baseRecord = buildAvaluoRecord(tipo, form, result);
+  const baseRecord = buildAvaluoRecord(tipo, form, result, reportConfig);
   const sanitized = cleanForFirestore(baseRecord);
   delete sanitized.id;
   delete sanitized.imagenPrincipalFile;
