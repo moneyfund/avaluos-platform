@@ -1,0 +1,35 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function membershipPath(tenantId) {
+      return /databases/(default)/documents/tenants/$(tenantId)/members/$(request.auth.uid);
+    }
+
+    function isActiveMember(tenantId) {
+      return signedIn()
+        && firestore.exists(membershipPath(tenantId))
+        && firestore.get(membershipPath(tenantId)).data.status == 'active';
+    }
+
+    function canWrite(tenantId) {
+      return isActiveMember(tenantId)
+        && firestore.get(membershipPath(tenantId)).data.role in ['owner', 'admin', 'valuer', 'agent'];
+    }
+
+    match /tenants/{tenantId}/avaluos/{avaluoId}/{allPaths=**} {
+      allow read: if isActiveMember(tenantId);
+      allow create, update: if canWrite(tenantId)
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+      allow delete: if canWrite(tenantId);
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
