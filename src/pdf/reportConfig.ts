@@ -9,16 +9,15 @@ export type ReportConfig = {
   secondaryColor?: string;
 };
 
-// Baseline visual identity preserved from the current production reports.
-// This will become tenant-configurable when the multi-tenant layer is introduced.
+// Neutral fallback only. Normal app flows inject the active tenant branding.
 export const DEFAULT_REPORT_CONFIG: ReportConfig = {
-  organizationName: 'DIAMANTES REALTY GROUP',
-  shortName: 'DRG',
-  website: 'www.diamantesrealtygroup.com',
+  organizationName: 'AVALÚOS PLATFORM',
+  shortName: 'AP',
+  website: '',
   reportTitle: 'Informe Técnico de Avalúo',
-  footerText: 'Documento generado automáticamente por el Sistema Profesional de Avalúos Inmobiliarios.',
-  primaryColor: '#991b1b',
-  secondaryColor: '#111827',
+  footerText: 'Documento generado por Avalúos Platform.',
+  primaryColor: '#ffffff',
+  secondaryColor: '#d4af37',
 };
 
 export const resolveReportConfig = (avaluo: any): ReportConfig => ({
