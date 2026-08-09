@@ -14,7 +14,7 @@ function UploadField({ label, file, multiple = false, count = 0, onFiles }) {
 
 export default function InformeGeneralSection({ value, onChange }: { value: any; onChange: (key: string, value: any) => void }) {
   const gallery = value.imagenesAdicionalesFiles || [];
-  return <section className="avaluo-report-data" aria-labelledby="report-data-title"><div className="avaluo-card-title"><span><UserRound /></span><div><p>Datos del informe</p><h2 id="report-data-title">Responsable y evidencia fotográfica</h2><small>Las imágenes se mantienen localmente en esta fase; Storage se conectará con el Firebase independiente.</small></div></div>
+  return <section className="avaluo-report-data" aria-labelledby="report-data-title"><div className="avaluo-card-title"><span><UserRound /></span><div><p>Datos del informe</p><h2 id="report-data-title">Responsable y evidencia fotográfica</h2><small>Las fotografías se incluirán en el informe y se subirán al Storage de la organización cuando guardes el avalúo.</small></div></div>
     <div className="avaluo-report-grid"><label><span>Agente evaluador <b>*</b></span><input value={value.agenteEvaluador || ''} onChange={(event) => onChange('agenteEvaluador', event.target.value)} /></label><label><span>Teléfono del agente <small>Opcional</small></span><input type="tel" value={value.telefonoAgente || ''} onChange={(event) => onChange('telefonoAgente', event.target.value)} /></label>
       <UploadField label="Imagen principal" file={value.imagenPrincipalFile} onFiles={(files) => onChange('imagenPrincipalFile', files[0] || null)} />
       <UploadField label="Fotografías adicionales" multiple file={gallery} count={gallery.length} onFiles={(files) => onChange('imagenesAdicionalesFiles', files.slice(0, 5))} />
