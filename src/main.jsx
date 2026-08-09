@@ -10,6 +10,7 @@ import './styles/pdfControls.css';
 import './styles/persistence.css';
 import './styles/platformAdmin.css';
 import './styles/platformAdminManagement.css';
+import './styles/platformAdminFunctional.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
