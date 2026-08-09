@@ -3,6 +3,7 @@ import { Calculator, CheckCircle2, MapPinned, RotateCcw } from 'lucide-react';
 import TerrenoForm from '../forms/TerrenoForm';
 import { calcularAvaluo } from '../../../core/avaluos/engine/avaluo.engine';
 import DownloadAvaluoPdfButton from './DownloadAvaluoPdfButton';
+import SaveAvaluoButton from './SaveAvaluoButton';
 import { buildAvaluoRecord } from '../../../pdf/buildAvaluoRecord';
 
 const initialForm = () => ({
@@ -49,7 +50,7 @@ export default function TerrenoWorkspace() {
 
   return <main className='terrain-page'>
     <header className='terrain-hero'>
-      <div><p className='terrain-kicker'>Avalúos Platform · núcleo independiente</p><h1>Avalúo técnico de terreno</h1><p>Formulario profesional conectado directamente al motor migrado. En esta fase el cálculo y el informe PDF funcionan sin guardar datos en Firebase.</p></div>
+      <div><p className='terrain-kicker'>Avalúos Platform · núcleo independiente</p><h1>Avalúo técnico de terreno</h1><p>Formulario profesional conectado al motor vigente. Calcula, genera el informe PDF y guarda el expediente dentro de tu organización.</p></div>
       <button type='button' className='terrain-reset' onClick={reset}><RotateCcw /> Nuevo avalúo</button>
     </header>
 
@@ -76,7 +77,7 @@ export default function TerrenoWorkspace() {
         <Metric label='Liquidez' value={result.indiceLiquidez ? `${result.indiceLiquidez}/100` : '—'} />
         <Metric label='Venta estimada' value={result.tiempoEstimadoVenta || '—'} />
       </div>
-      {pdfAvaluo && <DownloadAvaluoPdfButton avaluo={pdfAvaluo} />}
+      <div className='avaluo-result-actions'>{pdfAvaluo && <DownloadAvaluoPdfButton avaluo={pdfAvaluo} />}<SaveAvaluoButton tipo='terreno' form={form} result={result} /></div>
       <details className='terrain-coefficients' open><summary>Coeficientes aplicados <span>{Array.isArray(result.coeficientesAplicados) ? result.coeficientesAplicados.length : 0}</span></summary>
         <div className='terrain-table-wrap'><table><thead><tr><th>Factor</th><th>Valor aplicado</th><th>Impacto</th><th>Justificación</th></tr></thead><tbody>{(Array.isArray(result.coeficientesAplicados) ? result.coeficientesAplicados : []).map((item, index) => <tr key={`${item.factor}-${index}`}><td>{item.factor}</td><td>{item.valorAplicado}</td><td>{item.impacto}</td><td>{item.justificacion || '—'}</td></tr>)}</tbody></table></div>
       </details>
