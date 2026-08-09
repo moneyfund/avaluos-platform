@@ -1,8 +1,9 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   BadgeCheck,
   Building2,
   Check,
+  ImagePlus,
   KeyRound,
   Plus,
   Save,
@@ -22,6 +23,7 @@ import {
   updatePlatformTenantMember,
   updatePlatformTenantProfile,
 } from './platformAdmin.service';
+import { uploadTenantBrandingLogo } from './tenantBrandingStorage.service';
 
 type ManageTab = 'general' | 'members' | 'license';
 
@@ -71,6 +73,7 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
     primaryColor: branding.primaryColor || '#ffffff',
     secondaryColor: branding.secondaryColor || '#d4af37',
     logoUrl: branding.logoUrl || '',
+    logoStoragePath: branding.logoStoragePath || '',
     footerText: branding.footerText || 'Avalúos profesionales',
     reportTitle: branding.reportTitle || 'Informe técnico de avalúo',
   });
@@ -111,10 +114,31 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
     setMessage('');
     try {
       await updatePlatformTenantProfile(tenant.id, profile);
-      setMessage('Identidad, contacto y dominio actualizados correctamente.');
+      setMessage('Identidad, contacto, branding y dominio actualizados correctamente.');
     } catch (cause) {
       console.error(cause);
       setError(cause instanceof Error ? cause.message : 'No fue posible guardar la organización.');
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const uploadLogo = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setBusy('logo');
+    setError('');
+    setMessage('');
+    try {
+      const uploaded = await uploadTenantBrandingLogo(tenant.id, file, profile.logoStoragePath);
+      const nextProfile = { ...profile, logoUrl: uploaded.url, logoStoragePath: uploaded.path };
+      setProfile(nextProfile);
+      await updatePlatformTenantProfile(tenant.id, nextProfile);
+      setMessage('Logo institucional actualizado correctamente.');
+    } catch (cause) {
+      console.error(cause);
+      setError(cause instanceof Error ? cause.message : 'No fue posible subir el logo.');
     } finally {
       setBusy('');
     }
@@ -127,7 +151,7 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
     setMessage('');
     try {
       await updatePlatformTenantLicense(tenant.id, licenseForm);
-      setMessage('Licencia y límites actualizados.');
+      setMessage('Licencia, módulos y límites actualizados.');
     } catch (cause) {
       console.error(cause);
       setError(cause instanceof Error ? cause.message : 'No fue posible actualizar la licencia.');
@@ -187,7 +211,7 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
     <aside className='tenant-manager' onMouseDown={(event) => event.stopPropagation()} aria-label={`Administrar ${tenant.name}`}>
       <header className='tenant-manager-header'>
         <div className='tenant-manager-identity'>
-          <span><Building2 /></span>
+          {profile.logoUrl ? <img className='tenant-manager-logo' src={profile.logoUrl} alt={`Logo ${tenant.name}`} /> : <span><Building2 /></span>}
           <div><small>ORGANIZACIÓN</small><h2>{tenant.name}</h2><p>{tenant.slug}</p></div>
         </div>
         <button type='button' onClick={onClose} aria-label='Cerrar'><X /></button>
@@ -207,7 +231,7 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
             <div className='tenant-section-heading'><div><strong>Identidad institucional</strong><small>Información que verá el cliente y utilizarán los informes.</small></div><BadgeCheck /></div>
             <div className='tenant-form-grid'>
               <label><span>Nombre comercial</span><input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required /></label>
-              <label><span>Nombre corto</span><input value={profile.shortName} onChange={(e) => setProfile({ ...profile, shortName: e.target.value })} placeholder='DRG' /></label>
+              <label><span>Nombre corto</span><input value={profile.shortName} onChange={(e) => setProfile({ ...profile, shortName: e.target.value })} placeholder={tenant.id === 'norvin' ? 'NG' : 'DRG'} /></label>
               <label><span>Sitio web</span><input value={profile.website} onChange={(e) => setProfile({ ...profile, website: e.target.value })} placeholder='https://empresa.com' /></label>
               <label><span>Dominio de avalúos</span><input value={profile.domain} onChange={(e) => setProfile({ ...profile, domain: e.target.value })} placeholder='avaluos.empresa.com' /></label>
               <label><span>Email institucional</span><input type='email' value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} /></label>
@@ -216,22 +240,32 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
           </section>
 
           <section>
-            <div className='tenant-section-heading'><div><strong>Branding del informe</strong><small>Colores y textos que luego alimentarán los PDFs por tenant.</small></div><ShieldCheck /></div>
+            <div className='tenant-section-heading'><div><strong>Branding del informe</strong><small>Colores, logo y textos que alimentarán los PDFs por tenant.</small></div><ShieldCheck /></div>
             <div className='tenant-form-grid'>
               <label><span>Color principal</span><div className='tenant-color-field'><input type='color' value={profile.primaryColor} onChange={(e) => setProfile({ ...profile, primaryColor: e.target.value })} /><input value={profile.primaryColor} onChange={(e) => setProfile({ ...profile, primaryColor: e.target.value })} /></div></label>
               <label><span>Color secundario</span><div className='tenant-color-field'><input type='color' value={profile.secondaryColor} onChange={(e) => setProfile({ ...profile, secondaryColor: e.target.value })} /><input value={profile.secondaryColor} onChange={(e) => setProfile({ ...profile, secondaryColor: e.target.value })} /></div></label>
-              <label className='is-wide'><span>Logo URL</span><input value={profile.logoUrl} onChange={(e) => setProfile({ ...profile, logoUrl: e.target.value })} placeholder='Se conectará carga directa en la siguiente fase' /></label>
+              <div className='tenant-logo-uploader is-wide'>
+                <span>Logo institucional</span>
+                <div>
+                  <div className='tenant-logo-preview'>{profile.logoUrl ? <img src={profile.logoUrl} alt={`Logo ${tenant.name}`} /> : <ImagePlus />}</div>
+                  <label className='tenant-logo-button'>
+                    <ImagePlus /> {busy === 'logo' ? 'Subiendo…' : profile.logoUrl ? 'Cambiar logo' : 'Subir logo'}
+                    <input type='file' accept='image/png,image/jpeg,image/webp' onChange={uploadLogo} disabled={busy === 'logo'} />
+                  </label>
+                  <small>PNG, JPG o WEBP · máximo 2 MB.</small>
+                </div>
+              </div>
               <label><span>Título del informe</span><input value={profile.reportTitle} onChange={(e) => setProfile({ ...profile, reportTitle: e.target.value })} /></label>
               <label><span>Texto de pie</span><input value={profile.footerText} onChange={(e) => setProfile({ ...profile, footerText: e.target.value })} /></label>
             </div>
           </section>
 
-          <div className='tenant-manager-actions'><button type='submit' className='platform-primary-button' disabled={busy === 'profile'}><Save /> {busy === 'profile' ? 'Guardando…' : 'Guardar cambios'}</button></div>
+          <div className='tenant-manager-actions'><button type='submit' className='platform-primary-button' disabled={busy === 'profile' || busy === 'logo'}><Save /> {busy === 'profile' ? 'Guardando…' : 'Guardar cambios'}</button></div>
         </form>}
 
         {tab === 'members' && <div className='tenant-members-view'>
           <section className='tenant-add-member'>
-            <div className='tenant-section-heading'><div><strong>Asignar usuario registrado</strong><small>El usuario debe haber iniciado sesión al menos una vez en Avalúos Platform.</small></div><UserRoundCog /></div>
+            <div className='tenant-section-heading'><div><strong>Asignar usuario registrado</strong><small>Uso actual: {members.length} de {licenseForm.maxUsers} usuarios permitidos por la licencia.</small></div><UserRoundCog /></div>
             <div className='tenant-add-member-controls'>
               <select value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)}>
                 <option value=''>Selecciona un usuario…</option>
@@ -240,8 +274,9 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
               <select value={newRole} onChange={(e) => setNewRole(e.target.value as PlatformMember['role'])}>
                 {Object.entries(roleLabel).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
-              <button type='button' className='platform-primary-button' disabled={!selectedUserId || busy === 'add-member'} onClick={addMember}><Plus /> Asignar</button>
+              <button type='button' className='platform-primary-button' disabled={!selectedUserId || busy === 'add-member' || members.length >= licenseForm.maxUsers} onClick={addMember}><Plus /> Asignar</button>
             </div>
+            {members.length >= licenseForm.maxUsers && <p className='tenant-helper is-warning'>La organización alcanzó el límite de usuarios de su licencia. Amplía el límite en la pestaña Licencia para agregar más cuentas.</p>}
             {!availableUsers.length && <p className='tenant-helper'>No hay usuarios pendientes. Para agregar una cuenta nueva, pídele iniciar sesión una vez; aparecerá aquí aunque todavía no tenga organización.</p>}
           </section>
 
@@ -263,7 +298,7 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
 
         {tab === 'license' && <form onSubmit={saveLicense} className='tenant-manage-form'>
           <section>
-            <div className='tenant-section-heading'><div><strong>Estado y plan</strong><small>Control comercial y operativo de la licencia.</small></div><KeyRound /></div>
+            <div className='tenant-section-heading'><div><strong>Estado y plan</strong><small>Estos controles ya restringen el acceso real al sistema.</small></div><KeyRound /></div>
             <div className='tenant-form-grid'>
               <label><span>Estado</span><select value={licenseForm.status} onChange={(e) => setLicenseForm({ ...licenseForm, status: e.target.value as any })}><option value='active'>Activa</option><option value='suspended'>Suspendida</option><option value='expired'>Expirada</option></select></label>
               <label><span>Plan</span><select value={licenseForm.plan} onChange={(e) => setLicenseForm({ ...licenseForm, plan: e.target.value })}><option value='starter'>Starter</option><option value='professional'>Profesional</option><option value='enterprise'>Enterprise</option></select></label>
@@ -274,7 +309,7 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
           </section>
 
           <section>
-            <div className='tenant-section-heading'><div><strong>Módulos habilitados</strong><small>Activa o desactiva capacidades según el plan contratado.</small></div><ShieldCheck /></div>
+            <div className='tenant-section-heading'><div><strong>Módulos habilitados</strong><small>Desactivar un módulo lo oculta y bloquea realmente para los usuarios del tenant.</small></div><ShieldCheck /></div>
             <div className='tenant-feature-grid'>
               <label className={licenseForm.terrenos ? 'is-on' : ''}><input type='checkbox' checked={licenseForm.terrenos} onChange={(e) => setLicenseForm({ ...licenseForm, terrenos: e.target.checked })} /><span><Check /> Avalúos de terrenos</span></label>
               <label className={licenseForm.casas ? 'is-on' : ''}><input type='checkbox' checked={licenseForm.casas} onChange={(e) => setLicenseForm({ ...licenseForm, casas: e.target.checked })} /><span><Check /> Avalúos de casas</span></label>
