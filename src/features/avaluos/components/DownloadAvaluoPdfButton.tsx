@@ -4,7 +4,7 @@ import { exportAvaluoToPdf } from '../../../pdf/exportAvaluoPdf';
 import { useTenant } from '../../../tenants/TenantContext';
 
 export default function DownloadAvaluoPdfButton({ avaluo }: { avaluo: any }) {
-  const { canUseFeature } = useTenant();
+  const { canUseFeature, reportConfig } = useTenant();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const pdfEnabled = canUseFeature('pdf');
@@ -14,7 +14,10 @@ export default function DownloadAvaluoPdfButton({ avaluo }: { avaluo: any }) {
     setLoading(true);
     setError('');
     try {
-      await exportAvaluoToPdf(avaluo);
+      await exportAvaluoToPdf({
+        ...avaluo,
+        reportConfig: avaluo.reportConfig || reportConfig,
+      });
     } catch (cause) {
       console.error(cause);
       setError(cause instanceof Error ? cause.message : 'No fue posible generar el PDF.');
