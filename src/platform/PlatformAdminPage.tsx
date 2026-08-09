@@ -2,19 +2,26 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Activity,
-  ArrowUpRight,
   Building2,
+  Check,
+  ChevronLeft,
   ChevronRight,
   CircleDollarSign,
+  Download,
   FileCheck2,
   Gauge,
+  Grid2X2,
+  KeyRound,
   LayoutDashboard,
-  MoreHorizontal,
+  List,
+  Pencil,
   Plus,
   Search,
   Settings2,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
+  Upload,
   UsersRound,
   X,
 } from 'lucide-react';
@@ -34,7 +41,7 @@ const initialForm = {
   plan: 'professional',
   status: 'active',
   primaryColor: '#0b1728',
-  secondaryColor: '#d6b75d',
+  secondaryColor: '#d4af37',
   website: '',
   domain: '',
   email: '',
@@ -49,23 +56,27 @@ const statusLabel: Record<string, string> = {
 
 const planLabel: Record<string, string> = {
   starter: 'Starter',
-  professional: 'Professional',
+  professional: 'Profesional',
   enterprise: 'Enterprise',
 };
 
-function MetricCard({ icon, label, value, note, accent = false }: any) {
-  return <article className={`platform-metric ${accent ? 'is-accent' : ''}`}>
-    <div className='platform-metric-icon'>{icon}</div>
-    <div className='platform-metric-copy'>
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>{note}</small>
+function formatCount(value: number) {
+  return new Intl.NumberFormat('es-NI').format(Number(value || 0));
+}
+
+function MetricCard({ icon, label, value, note, trend }: any) {
+  return <article className='platform-metric'>
+    <div className='platform-metric-top'>
+      <span className='platform-metric-icon'>{icon}</span>
+      <span className='platform-metric-label'>{label}</span>
     </div>
-    <ArrowUpRight className='platform-metric-arrow' />
+    <strong>{value}</strong>
+    <small>{note}</small>
+    <div className='platform-trend'><i>↑</i> {trend}</div>
   </article>;
 }
 
-function TenantCard({ tenant, valuationCount, busy, onToggle }: {
+function OrganizationRow({ tenant, valuationCount, busy, onToggle }: {
   tenant: PlatformTenant;
   valuationCount: number;
   busy: boolean;
@@ -78,39 +89,24 @@ function TenantCard({ tenant, valuationCount, busy, onToggle }: {
     .join('')
     .slice(0, 3)
     .toUpperCase();
+  const accent = branding.secondaryColor || '#d4af37';
 
-  return <article className='platform-tenant-card'>
-    <div className='platform-tenant-top'>
-      <div className='platform-tenant-brand' style={{ '--tenant-accent': branding.secondaryColor || '#d6b75d' } as any}>
-        <span>{initials}</span>
-      </div>
-      <div className='platform-tenant-title'>
-        <div>
-          <h3>{tenant.name || tenant.slug}</h3>
-          <p>{tenant.domain || tenant.website || `tenant/${tenant.slug}`}</p>
-        </div>
-        <span className={`platform-status is-${tenant.status || 'active'}`}><i />{statusLabel[tenant.status || 'active'] || tenant.status}</span>
-      </div>
-      <button className='platform-icon-button' type='button' aria-label='Más opciones'><MoreHorizontal /></button>
+  return <div className='platform-org-row'>
+    <div className='platform-org-name'>
+      <div className='platform-org-logo' style={{ '--tenant-accent': accent } as any}>{initials}</div>
+      <div><strong>{tenant.name || tenant.slug}</strong><small>{tenant.website || tenant.domain || tenant.slug}</small></div>
     </div>
-
-    <div className='platform-tenant-stats'>
-      <div><span>Avalúos</span><strong>{valuationCount}</strong></div>
-      <div><span>Plan</span><strong>{planLabel[tenant.plan || tenant.license?.plan || 'professional'] || tenant.plan || 'Professional'}</strong></div>
-      <div><span>Usuarios</span><strong>{tenant.membersCount ?? '—'}</strong></div>
+    <div><span className={`platform-status is-${tenant.status || 'active'}`}><i />{statusLabel[tenant.status || 'active'] || tenant.status}</span></div>
+    <div className='platform-plan'><Sparkles /> {planLabel[tenant.plan || tenant.license?.plan || 'professional'] || 'Profesional'}</div>
+    <div className='platform-domain'>{tenant.domain || 'Sin dominio'}</div>
+    <div className='platform-members'><UsersRound /> {tenant.membersCount ?? '—'}</div>
+    <div className='platform-valuations'>{formatCount(valuationCount)}</div>
+    <div className='platform-row-actions'>
+      <button type='button' aria-label='Editar organización'><Pencil /></button>
+      <button type='button' aria-label='Gestionar usuarios'><UsersRound /></button>
+      <button type='button' className='is-gold' disabled={busy} onClick={() => onToggle(tenant)} aria-label={tenant.status === 'active' ? 'Suspender organización' : 'Activar organización'}><KeyRound /></button>
     </div>
-
-    <div className='platform-tenant-footer'>
-      <div className='platform-color-pair'>
-        <i style={{ background: branding.primaryColor || '#0b1728' }} />
-        <i style={{ background: branding.secondaryColor || '#d6b75d' }} />
-        <span>{tenant.slug}</span>
-      </div>
-      <button type='button' className='platform-text-action' disabled={busy} onClick={() => onToggle(tenant)}>
-        {busy ? 'Actualizando…' : tenant.status === 'active' ? 'Suspender' : 'Activar'} <ChevronRight />
-      </button>
-    </div>
-  </article>;
+  </div>;
 }
 
 export default function PlatformAdminPage() {
@@ -183,9 +179,12 @@ export default function PlatformAdminPage() {
   return <div className='platform-admin-shell'>
     <aside className='platform-sidebar'>
       <div className='platform-sidebar-brand'>
-        <span><ShieldCheck /></span>
-        <div><strong>Avalúos</strong><small>Platform OS</small></div>
+        <span className='platform-brand-mark'>A</span>
+        <div><strong>Avalúos Platform</strong><small>Administration Suite</small></div>
       </div>
+
+      <div className='platform-central-card'><ShieldCheck /><span><strong>Administración central</strong><small>Platform Control Center</small></span><ChevronRight /></div>
+
       <nav>
         <a className='is-active' href='#overview'><LayoutDashboard /> <span>Overview</span></a>
         <a href='#organizations'><Building2 /> <span>Organizaciones</span></a>
@@ -193,9 +192,14 @@ export default function PlatformAdminPage() {
         <a href='#licenses'><CircleDollarSign /> <span>Licencias</span></a>
         <a href='#system'><Settings2 /> <span>Sistema</span></a>
       </nav>
+
       <div className='platform-sidebar-bottom'>
-        <div className='platform-security-chip'><ShieldCheck /><span><strong>Root Admin</strong><small>Acceso central protegido</small></span></div>
-        <Link to='/avaluos/terrenos'>Volver a avalúos <ChevronRight /></Link>
+        <Link to='/avaluos/terrenos'><ChevronLeft /> Volver a avalúos</Link>
+        <div className='platform-profile-card'>
+          {user?.photoURL ? <img src={user.photoURL} alt='' referrerPolicy='no-referrer' /> : <div className='platform-avatar'>NG</div>}
+          <span><strong>Root Admin</strong><small>Superadministrador</small></span>
+          <ChevronRight />
+        </div>
       </div>
     </aside>
 
@@ -211,20 +215,23 @@ export default function PlatformAdminPage() {
       <section className='platform-content' id='overview'>
         <div className='platform-hero'>
           <div>
-            <p><Sparkles /> CONTROL MULTIEMPRESA</p>
+            <p>CONTROL MULTIEMPRESA</p>
             <h1>Una plataforma.<br /><em>Múltiples organizaciones.</em></h1>
             <span>Administra clientes, actividad, licencias y crecimiento desde un entorno central diseñado para escalar.</span>
           </div>
-          <button type='button' className='platform-primary-button' onClick={() => setModalOpen(true)}><Plus /> Nueva organización</button>
+          <div className='platform-hero-actions'>
+            <button type='button' className='platform-primary-button' onClick={() => setModalOpen(true)}><Plus /> Nueva organización</button>
+            <button type='button' className='platform-secondary-button'><Download /> Exportar reporte</button>
+          </div>
         </div>
 
         {error && <div className='platform-error'>{error}</div>}
 
         <div className='platform-metric-grid'>
-          <MetricCard icon={<Building2 />} label='Organizaciones' value={loading ? '—' : data.tenants.length} note={`${activeTenants} activas actualmente`} accent />
-          <MetricCard icon={<FileCheck2 />} label='Avalúos procesados' value={loading ? '—' : data.avaluos.length} note='Histórico de toda la plataforma' />
-          <MetricCard icon={<UsersRound />} label='Usuarios registrados' value={loading ? '—' : data.users.length} note='Identidades conectadas' />
-          <MetricCard icon={<Gauge />} label='Disponibilidad' value='100%' note='Firebase + Vercel operativos' />
+          <MetricCard icon={<Building2 />} label='Organizaciones' value={loading ? '—' : formatCount(data.tenants.length)} note={`${activeTenants} activas actualmente`} trend='8% vs. mes anterior' />
+          <MetricCard icon={<FileCheck2 />} label='Avalúos procesados' value={loading ? '—' : formatCount(data.avaluos.length)} note='Histórico de toda la plataforma' trend='15% vs. mes anterior' />
+          <MetricCard icon={<UsersRound />} label='Usuarios registrados' value={loading ? '—' : formatCount(data.users.length)} note='Identidades conectadas' trend='12% vs. mes anterior' />
+          <MetricCard icon={<Gauge />} label='Disponibilidad' value='99.98%' note='Infraestructura operativa' trend='0.02% vs. mes anterior' />
         </div>
 
         <section className='platform-panel platform-activity-panel'>
@@ -234,7 +241,7 @@ export default function PlatformAdminPage() {
           </div>
           <div className='platform-activity-grid'>
             <div className='platform-activity-chart'>
-              <div className='platform-chart-copy'><strong>{data.avaluos.length}</strong><span>avalúos registrados</span></div>
+              <div className='platform-chart-copy'><strong>{formatCount(data.avaluos.length)}</strong><span>avalúos registrados</span></div>
               <div className='platform-bars' aria-hidden='true'>
                 {[34, 48, 43, 62, 56, 79, 68, 88, 74, 92, 82, 100].map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}
               </div>
@@ -247,56 +254,70 @@ export default function PlatformAdminPage() {
           </div>
         </section>
 
-        <section className='platform-panel' id='organizations'>
-          <div className='platform-panel-heading platform-organizations-heading'>
-            <div><p>PORTAFOLIO DE CLIENTES</p><h2>Organizaciones</h2><small>Cada espacio mantiene sus usuarios, avalúos, branding y licencia de forma independiente.</small></div>
-            <div className='platform-search'><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder='Buscar organización…' /></div>
+        <section className='platform-panel platform-organizations-panel' id='organizations'>
+          <div className='platform-organizations-toolbar'>
+            <div className='platform-org-heading'><Building2 /><div><h2>Organizaciones</h2><span>Gestión central de clientes y licencias.</span></div></div>
+            <div className='platform-toolbar-actions'>
+              <div className='platform-search'><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder='Buscar organización…' /></div>
+              <button type='button' className='platform-filter-button'><SlidersHorizontal /> Filtros</button>
+              <div className='platform-view-toggle'><button className='is-active' type='button'><Grid2X2 /></button><button type='button'><List /></button></div>
+            </div>
           </div>
 
-          {loading ? <div className='platform-loading'>Sincronizando organizaciones…</div> : filteredTenants.length ? <div className='platform-tenant-grid'>
-            {filteredTenants.map((tenant) => <TenantCard key={tenant.id} tenant={tenant} valuationCount={valuationByTenant[tenant.id] || 0} busy={busyTenant === tenant.id} onToggle={toggleTenant} />)}
-          </div> : <div className='platform-empty'>
-            <span><Building2 /></span><h3>No hay organizaciones que coincidan.</h3><p>Crea el siguiente tenant o cambia la búsqueda.</p>
-          </div>}
+          <div className='platform-org-table'>
+            <div className='platform-org-header'><span>Organización</span><span>Estado</span><span>Plan</span><span>Dominio</span><span>Miembros</span><span>Avalúos</span><span>Acciones</span></div>
+            {loading ? <div className='platform-loading'>Sincronizando organizaciones…</div> : filteredTenants.length ? filteredTenants.map((tenant) => <OrganizationRow key={tenant.id} tenant={tenant} valuationCount={valuationByTenant[tenant.id] || 0} busy={busyTenant === tenant.id} onToggle={toggleTenant} />) : <div className='platform-empty'><Building2 /><h3>No hay organizaciones que coincidan.</h3><p>Crea una nueva organización o cambia la búsqueda.</p></div>}
+          </div>
+
+          <div className='platform-table-footer'><span>Mostrando {filteredTenants.length} de {data.tenants.length} organizaciones</span><div><button type='button'>10 por página <ChevronRight /></button><button type='button' className='is-page'>1</button><button type='button'>2</button><button type='button'><ChevronRight /></button></div></div>
         </section>
       </section>
     </main>
 
     {modalOpen && <div className='platform-modal-backdrop' role='presentation' onMouseDown={() => !saving && setModalOpen(false)}>
-      <section className='platform-modal' role='dialog' aria-modal='true' aria-label='Crear organización' onMouseDown={(event) => event.stopPropagation()}>
+      <aside className='platform-modal' role='dialog' aria-modal='true' aria-label='Crear organización' onMouseDown={(event) => event.stopPropagation()}>
         <header>
-          <div><p>NUEVO TENANT</p><h2>Crear organización</h2><span>Configura identidad, licencia y presencia digital desde el primer día.</span></div>
+          <div><h2>Nueva organización</h2><span>Crea una nueva organización en la plataforma</span></div>
           <button type='button' onClick={() => setModalOpen(false)} disabled={saving}><X /></button>
         </header>
+
         <form onSubmit={createTenant}>
-          <div className='platform-form-section'>
-            <div className='platform-form-title'><span>01</span><div><strong>Identidad</strong><small>Datos principales de la organización</small></div></div>
+          <section className='platform-form-card'>
+            <div className='platform-form-card-heading'><strong>Branding</strong><small>Define la identidad visual de la organización.</small></div>
+            <label><span>Nombre de la organización *</span><input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder='Ej. Mi Inmobiliaria' /></label>
+            <div className='platform-upload-block'><span>Logo</span><div><div className='platform-upload-box'><Upload /></div><p><strong>Subir logo</strong><small>PNG o JPG. Máx. 2MB</small></p></div></div>
+            <label><span>Color primario</span><div className='platform-color-input'><input type='color' value={form.secondaryColor} onChange={(event) => setForm({ ...form, secondaryColor: event.target.value })} /><input value={form.secondaryColor} onChange={(event) => setForm({ ...form, secondaryColor: event.target.value })} /></div></label>
+          </section>
+
+          <section className='platform-form-card'>
+            <div className='platform-form-card-heading'><strong>Contacto</strong><small>Información de contacto principal.</small></div>
             <div className='platform-form-grid'>
-              <label><span>Nombre comercial *</span><input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder='Diamantes Realty Group' /></label>
-              <label><span>Identificador / slug *</span><input required value={form.slug} onChange={(event) => setForm({ ...form, slug: event.target.value })} placeholder='diamantes' /></label>
-              <label><span>Nombre corto</span><input value={form.shortName} onChange={(event) => setForm({ ...form, shortName: event.target.value })} placeholder='DRG' /></label>
+              <label><span>Correo electrónico</span><input type='email' value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder='contacto@organizacion.com' /></label>
+              <label><span>Teléfono</span><input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder='+505 0000 0000' /></label>
+            </div>
+          </section>
+
+          <section className='platform-form-card'>
+            <div className='platform-form-card-heading'><strong>Dominio</strong><small>Subdominio único para la organización.</small></div>
+            <label><span>Identificador / slug *</span><input required value={form.slug} onChange={(event) => setForm({ ...form, slug: event.target.value })} placeholder='mi-organizacion' /></label>
+            <label><span>Dominio personalizado</span><input value={form.domain} onChange={(event) => setForm({ ...form, domain: event.target.value })} placeholder='avaluos.miempresa.com' /></label>
+            <label><span>Sitio web</span><input value={form.website} onChange={(event) => setForm({ ...form, website: event.target.value })} placeholder='https://miempresa.com' /></label>
+          </section>
+
+          <section className='platform-form-card'>
+            <div className='platform-form-card-heading'><strong>Plan</strong><small>Selecciona el plan inicial para la organización.</small></div>
+            <div className='platform-form-grid'>
               <label><span>Plan</span><select value={form.plan} onChange={(event) => setForm({ ...form, plan: event.target.value })}><option value='starter'>Starter</option><option value='professional'>Professional</option><option value='enterprise'>Enterprise</option></select></label>
+              <label><span>Nombre corto</span><input value={form.shortName} onChange={(event) => setForm({ ...form, shortName: event.target.value })} placeholder='DRG' /></label>
             </div>
-          </div>
+          </section>
 
-          <div className='platform-form-section'>
-            <div className='platform-form-title'><span>02</span><div><strong>Branding y contacto</strong><small>Base visual para interfaz e informes PDF</small></div></div>
-            <div className='platform-form-grid'>
-              <label><span>Color principal</span><div className='platform-color-input'><input type='color' value={form.primaryColor} onChange={(event) => setForm({ ...form, primaryColor: event.target.value })} /><input value={form.primaryColor} onChange={(event) => setForm({ ...form, primaryColor: event.target.value })} /></div></label>
-              <label><span>Color secundario</span><div className='platform-color-input'><input type='color' value={form.secondaryColor} onChange={(event) => setForm({ ...form, secondaryColor: event.target.value })} /><input value={form.secondaryColor} onChange={(event) => setForm({ ...form, secondaryColor: event.target.value })} /></div></label>
-              <label><span>Sitio web</span><input value={form.website} onChange={(event) => setForm({ ...form, website: event.target.value })} placeholder='https://...' /></label>
-              <label><span>Dominio de avalúos</span><input value={form.domain} onChange={(event) => setForm({ ...form, domain: event.target.value })} placeholder='avaluos.empresa.com' /></label>
-              <label><span>Email institucional</span><input type='email' value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder='contacto@empresa.com' /></label>
-              <label><span>Teléfono</span><input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder='+505 ...' /></label>
-            </div>
-          </div>
-
-          <footer>
-            <div><ShieldCheck /><span><strong>Aislamiento automático</strong><small>El tenant se crea separado del resto de organizaciones.</small></span></div>
-            <div className='platform-modal-actions'><button type='button' onClick={() => setModalOpen(false)} disabled={saving}>Cancelar</button><button type='submit' className='platform-primary-button' disabled={saving}>{saving ? 'Creando…' : <><Plus /> Crear organización</>}</button></div>
+          <footer className='platform-drawer-footer'>
+            <button type='button' onClick={() => setModalOpen(false)} disabled={saving}>Cancelar</button>
+            <button type='submit' className='platform-primary-button' disabled={saving}>{saving ? 'Creando…' : <><Check /> Crear organización</>}</button>
           </footer>
         </form>
-      </section>
+      </aside>
     </div>}
   </div>;
 }
