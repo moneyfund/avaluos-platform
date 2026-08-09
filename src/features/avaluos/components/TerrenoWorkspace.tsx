@@ -5,6 +5,7 @@ import { calcularAvaluo } from '../../../core/avaluos/engine/avaluo.engine';
 import DownloadAvaluoPdfButton from './DownloadAvaluoPdfButton';
 import SaveAvaluoButton from './SaveAvaluoButton';
 import { buildAvaluoRecord } from '../../../pdf/buildAvaluoRecord';
+import { useTenant } from '../../../tenants/TenantContext';
 
 const initialForm = () => ({
   titulo: '', agenteEvaluador: '', telefonoAgente: '', ciudad: 'Matagalpa', zona: '', zonaData: null,
@@ -18,13 +19,14 @@ const initialForm = () => ({
 const usd = (value) => Number(value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 
 export default function TerrenoWorkspace() {
+  const { reportConfig } = useTenant();
   const [form, setForm] = useState<any>(initialForm);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const completed = useMemo(() => Object.values(form).filter((value) => value !== '' && value !== null && value !== false && value !== 0 && (!Array.isArray(value) || value.length)).length, [form]);
-  const pdfAvaluo = useMemo(() => result ? buildAvaluoRecord('terreno', form, result) : null, [form, result]);
+  const pdfAvaluo = useMemo(() => result ? buildAvaluoRecord('terreno', form, result, reportConfig) : null, [form, result, reportConfig]);
   const change = (key, value) => { setForm((previous) => ({ ...previous, [key]: value })); setResult(null); setError(''); };
 
   const calculate = async () => {
