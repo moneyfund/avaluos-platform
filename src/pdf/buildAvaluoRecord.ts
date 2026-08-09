@@ -1,4 +1,4 @@
-export function buildAvaluoRecord(tipoPropiedad: 'terreno' | 'casa', form: any, result: any) {
+export function buildAvaluoRecord(tipoPropiedad: 'terreno' | 'casa', form: any, result: any, reportConfig?: any) {
   return {
     id: `preview-${Date.now()}`,
     tipoPropiedad,
@@ -12,6 +12,7 @@ export function buildAvaluoRecord(tipoPropiedad: 'terreno' | 'casa', form: any, 
     zonaSnapshot: form?.zonaData ? { ...form.zonaData } : null,
     imagenPrincipalFile: form?.imagenPrincipalFile || null,
     imagenesAdicionalesFiles: form?.imagenesAdicionalesFiles || [],
+    reportConfig: reportConfig ? { ...reportConfig } : null,
     ...result,
     valorFinal: result?.valorFinalEstimado ?? result?.estimatedValue ?? 0,
     valorFinalEstimado: result?.valorFinalEstimado ?? result?.estimatedValue ?? 0,
