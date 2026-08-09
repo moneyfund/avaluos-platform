@@ -3,7 +3,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
-  increment,
+  getDocs,
   onSnapshot,
   serverTimestamp,
   setDoc,
@@ -97,6 +97,10 @@ export function subscribeTenantMembers(
       .map((item) => ({ uid: item.id, ...item.data() } as PlatformMember))
       .sort((a, b) => String(a.displayName || a.email).localeCompare(String(b.displayName || b.email), 'es'));
     onData(members);
+    updateDoc(doc(db, 'tenants', tenantId), {
+      membersCount: snapshot.size,
+      updatedAt: serverTimestamp(),
+    }).catch(() => undefined);
   }, onError);
 }
 
@@ -150,6 +154,7 @@ export async function createPlatformTenant(input: any, createdBy: string) {
       footerText: input.footerText || 'Avalúos profesionales',
       reportTitle: input.reportTitle || 'Informe técnico de avalúo',
       logoUrl: String(input.logoUrl || '').trim(),
+      logoStoragePath: '',
     },
     license: {
       status,
@@ -221,6 +226,7 @@ export async function updatePlatformTenantProfile(tenantId: string, input: any) 
       footerText: String(input.footerText || branding.footerText || 'Avalúos profesionales').trim(),
       reportTitle: String(input.reportTitle || branding.reportTitle || 'Informe técnico de avalúo').trim(),
       logoUrl: String(input.logoUrl ?? branding.logoUrl ?? '').trim(),
+      logoStoragePath: String(input.logoStoragePath ?? branding.logoStoragePath ?? '').trim(),
     },
     updatedAt: serverTimestamp(),
   });
@@ -278,8 +284,21 @@ export async function addPlatformTenantMember(tenantId: string, user: any, role:
   if (!db) throw new Error('Firestore no está configurado.');
   if (!user?.id) throw new Error('Selecciona un usuario registrado.');
 
+  const tenantRef = doc(db, 'tenants', tenantId);
+  const [tenantSnap, memberList] = await Promise.all([
+    getDoc(tenantRef),
+    getDocs(collection(db, 'tenants', tenantId, 'members')),
+  ]);
+  if (!tenantSnap.exists()) throw new Error('La organización ya no existe.');
+
+  const tenant = tenantSnap.data() as any;
+  const maxUsers = Math.max(1, Number(tenant.license?.limits?.maxUsers || 10));
   const memberRef = doc(db, 'tenants', tenantId, 'members', user.id);
   const existingMember = await getDoc(memberRef);
+  if (!existingMember.exists() && memberList.size >= maxUsers) {
+    throw new Error(`La licencia permite un máximo de ${maxUsers} usuarios. Amplía el límite antes de asignar otra cuenta.`);
+  }
+
   const mappingRef = doc(db, 'userTenants', user.id);
   const mappingSnap = await getDoc(mappingRef);
   const currentMapping = mappingSnap.exists() ? mappingSnap.data() as any : {};
@@ -306,12 +325,10 @@ export async function addPlatformTenantMember(tenantId: string, user: any, role:
     createdAt: currentMapping.createdAt || serverTimestamp(),
   }, { merge: true });
 
-  if (!existingMember.exists()) {
-    await updateDoc(doc(db, 'tenants', tenantId), {
-      membersCount: increment(1),
-      updatedAt: serverTimestamp(),
-    });
-  }
+  await updateDoc(tenantRef, {
+    membersCount: existingMember.exists() ? memberList.size : memberList.size + 1,
+    updatedAt: serverTimestamp(),
+  });
 }
 
 export async function updatePlatformTenantMember(
@@ -343,15 +360,11 @@ export async function removePlatformTenantMember(tenantId: string, uid: string) 
     await setDoc(mappingRef, { tenantIds, defaultTenantId, updatedAt: serverTimestamp() }, { merge: true });
   }
 
-  const tenantRef = doc(db, 'tenants', tenantId);
-  const tenantSnap = await getDoc(tenantRef);
-  if (tenantSnap.exists()) {
-    const currentCount = Number((tenantSnap.data() as any).membersCount || 0);
-    await updateDoc(tenantRef, {
-      membersCount: Math.max(0, currentCount - 1),
-      updatedAt: serverTimestamp(),
-    });
-  }
+  const remainingMembers = await getDocs(collection(db, 'tenants', tenantId, 'members'));
+  await updateDoc(doc(db, 'tenants', tenantId), {
+    membersCount: remainingMembers.size,
+    updatedAt: serverTimestamp(),
+  });
 }
 
 export async function deletePlatformTenantDomain(domain?: string) {
