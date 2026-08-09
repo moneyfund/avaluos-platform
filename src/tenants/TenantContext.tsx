@@ -27,6 +27,7 @@ type TenantContextValue = {
   licenseStatus: string;
   features: Record<TenantFeature, boolean>;
   limits: { maxUsers: number; monthlyAvaluos: number };
+  reportConfig: any;
   canUseFeature: (feature: TenantFeature) => boolean;
 };
 
@@ -91,6 +92,10 @@ function timestampToDate(value: any) {
   }
 }
 
+function initials(value: string) {
+  return String(value || 'AP').split(/\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 3).toUpperCase();
+}
+
 export function TenantProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [tenant, setTenant] = useState<any | null>(null);
@@ -131,6 +136,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<TenantContextValue>(() => {
     const role = membership?.role;
     const license = tenant?.license || {};
+    const branding = tenant?.branding || {};
     const expiresAt = timestampToDate(license.expiresAt);
     const licenseExpired = Boolean(expiresAt && expiresAt.getTime() < Date.now());
     const licenseStatus = String(license.status || tenant?.status || 'active');
@@ -143,6 +149,16 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     const limits = {
       maxUsers: Math.max(1, Number(license.limits?.maxUsers || 10)),
       monthlyAvaluos: Math.max(1, Number(license.limits?.monthlyAvaluos || 200)),
+    };
+    const reportConfig = {
+      organizationName: branding.organizationName || tenant?.name || 'Avalúos Platform',
+      shortName: branding.shortName || initials(tenant?.name || tenant?.slug || 'AP'),
+      website: branding.website || tenant?.website || '',
+      reportTitle: branding.reportTitle || 'Informe Técnico de Avalúo',
+      footerText: branding.footerText || 'Documento generado por Avalúos Platform.',
+      logoUrl: branding.logoUrl || '',
+      primaryColor: branding.primaryColor || '#ffffff',
+      secondaryColor: branding.secondaryColor || '#d4af37',
     };
 
     return {
@@ -158,6 +174,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       licenseStatus,
       features,
       limits,
+      reportConfig,
       canUseFeature: (feature: TenantFeature) => licenseActive && features[feature],
     };
   }, [tenant, membership, loading, error]);
