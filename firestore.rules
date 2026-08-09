@@ -5,6 +5,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isBootstrapOwner() {
+      return signedIn()
+        && request.auth.token.email == 'norvingarcia220@gmail.com';
+    }
+
     function membershipPath(tenantId) {
       return /databases/$(database)/documents/tenants/$(tenantId)/members/$(request.auth.uid);
     }
@@ -32,12 +37,23 @@ service cloud.firestore {
 
     match /tenants/{tenantId} {
       allow read: if isActiveMember(tenantId);
-      allow create, delete: if false;
-      allow update: if hasTenantRole(tenantId, ['owner', 'admin']);
+      allow create: if tenantId == 'norvin'
+        && isBootstrapOwner()
+        && request.resource.data.slug == 'norvin'
+        && request.resource.data.status == 'active';
+      allow update: if hasTenantRole(tenantId, ['owner', 'admin'])
+        || (tenantId == 'norvin' && isBootstrapOwner());
+      allow delete: if false;
 
       match /members/{uid} {
         allow read: if signedIn() && (request.auth.uid == uid || hasTenantRole(tenantId, ['owner', 'admin']));
-        allow create, update, delete: if hasTenantRole(tenantId, ['owner', 'admin']);
+        allow create: if hasTenantRole(tenantId, ['owner', 'admin'])
+          || (tenantId == 'norvin'
+            && uid == request.auth.uid
+            && isBootstrapOwner()
+            && request.resource.data.role == 'owner'
+            && request.resource.data.status == 'active');
+        allow update, delete: if hasTenantRole(tenantId, ['owner', 'admin']);
       }
     }
 
@@ -48,7 +64,8 @@ service cloud.firestore {
         && request.resource.data.createdBy == request.auth.uid;
 
       allow update: if hasTenantRole(resource.data.tenantId, ['owner', 'admin', 'valuer', 'agent'])
-        && request.resource.data.tenantId == resource.data.tenantId;
+        && request.resource.data.tenantId == resource.data.tenantId
+        && request.resource.data.createdBy == resource.data.createdBy;
 
       allow delete: if hasTenantRole(resource.data.tenantId, ['owner', 'admin']);
     }
