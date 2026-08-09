@@ -13,6 +13,7 @@ export type PlatformTenant = {
   domain?: string;
   email?: string;
   phone?: string;
+  membersCount?: number;
   createdAt?: any;
   updatedAt?: any;
 };
@@ -99,6 +100,7 @@ export async function createPlatformTenant(input: any, createdBy: string) {
     domain,
     email: String(input.email || '').trim(),
     phone: String(input.phone || '').trim(),
+    membersCount: 0,
     branding: {
       organizationName: String(input.name || '').trim(),
       shortName: String(input.shortName || '').trim(),
