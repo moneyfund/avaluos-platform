@@ -31,8 +31,8 @@ import {
   PlatformDashboardSnapshot,
   PlatformTenant,
   subscribePlatformDashboard,
-  updatePlatformTenantStatus,
 } from './platformAdmin.service';
+import TenantManagementDrawer from './TenantManagementDrawer';
 
 const initialForm = {
   name: '',
@@ -40,7 +40,7 @@ const initialForm = {
   shortName: '',
   plan: 'professional',
   status: 'active',
-  primaryColor: '#0b1728',
+  primaryColor: '#ffffff',
   secondaryColor: '#d4af37',
   website: '',
   domain: '',
@@ -60,6 +60,8 @@ const planLabel: Record<string, string> = {
   enterprise: 'Enterprise',
 };
 
+type ManageTab = 'general' | 'members' | 'license';
+
 function formatCount(value: number) {
   return new Intl.NumberFormat('es-NI').format(Number(value || 0));
 }
@@ -76,11 +78,10 @@ function MetricCard({ icon, label, value, note, trend }: any) {
   </article>;
 }
 
-function OrganizationRow({ tenant, valuationCount, busy, onToggle }: {
+function OrganizationRow({ tenant, valuationCount, onManage }: {
   tenant: PlatformTenant;
   valuationCount: number;
-  busy: boolean;
-  onToggle: (tenant: PlatformTenant) => void;
+  onManage: (tenant: PlatformTenant, tab: ManageTab) => void;
 }) {
   const branding = tenant.branding || {};
   const initials = String(branding.shortName || tenant.name || tenant.slug || 'AP')
@@ -102,9 +103,9 @@ function OrganizationRow({ tenant, valuationCount, busy, onToggle }: {
     <div className='platform-members'><UsersRound /> {tenant.membersCount ?? '—'}</div>
     <div className='platform-valuations'>{formatCount(valuationCount)}</div>
     <div className='platform-row-actions'>
-      <button type='button' aria-label='Editar organización'><Pencil /></button>
-      <button type='button' aria-label='Gestionar usuarios'><UsersRound /></button>
-      <button type='button' className='is-gold' disabled={busy} onClick={() => onToggle(tenant)} aria-label={tenant.status === 'active' ? 'Suspender organización' : 'Activar organización'}><KeyRound /></button>
+      <button type='button' onClick={() => onManage(tenant, 'general')} aria-label='Editar organización'><Pencil /></button>
+      <button type='button' onClick={() => onManage(tenant, 'members')} aria-label='Gestionar usuarios'><UsersRound /></button>
+      <button type='button' className='is-gold' onClick={() => onManage(tenant, 'license')} aria-label='Gestionar licencia'><KeyRound /></button>
     </div>
   </div>;
 }
@@ -118,7 +119,8 @@ export default function PlatformAdminPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
-  const [busyTenant, setBusyTenant] = useState('');
+  const [manageTenant, setManageTenant] = useState<PlatformTenant | null>(null);
+  const [manageTab, setManageTab] = useState<ManageTab>('general');
 
   useEffect(() => {
     setLoading(true);
@@ -163,17 +165,9 @@ export default function PlatformAdminPage() {
     }
   };
 
-  const toggleTenant = async (tenant: PlatformTenant) => {
-    setBusyTenant(tenant.id);
-    setError('');
-    try {
-      await updatePlatformTenantStatus(tenant.id, tenant.status === 'active' ? 'suspended' : 'active');
-    } catch (cause) {
-      console.error(cause);
-      setError(cause instanceof Error ? cause.message : 'No fue posible actualizar la organización.');
-    } finally {
-      setBusyTenant('');
-    }
+  const openManager = (tenant: PlatformTenant, tab: ManageTab) => {
+    setManageTenant(tenant);
+    setManageTab(tab);
   };
 
   return <div className='platform-admin-shell'>
@@ -256,7 +250,7 @@ export default function PlatformAdminPage() {
 
         <section className='platform-panel platform-organizations-panel' id='organizations'>
           <div className='platform-organizations-toolbar'>
-            <div className='platform-org-heading'><Building2 /><div><h2>Organizaciones</h2><span>Gestión central de clientes y licencias.</span></div></div>
+            <div className='platform-org-heading'><Building2 /><div><h2>Organizaciones</h2><span>Gestión central de clientes, miembros, branding y licencias.</span></div></div>
             <div className='platform-toolbar-actions'>
               <div className='platform-search'><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder='Buscar organización…' /></div>
               <button type='button' className='platform-filter-button'><SlidersHorizontal /> Filtros</button>
@@ -266,10 +260,22 @@ export default function PlatformAdminPage() {
 
           <div className='platform-org-table'>
             <div className='platform-org-header'><span>Organización</span><span>Estado</span><span>Plan</span><span>Dominio</span><span>Miembros</span><span>Avalúos</span><span>Acciones</span></div>
-            {loading ? <div className='platform-loading'>Sincronizando organizaciones…</div> : filteredTenants.length ? filteredTenants.map((tenant) => <OrganizationRow key={tenant.id} tenant={tenant} valuationCount={valuationByTenant[tenant.id] || 0} busy={busyTenant === tenant.id} onToggle={toggleTenant} />) : <div className='platform-empty'><Building2 /><h3>No hay organizaciones que coincidan.</h3><p>Crea una nueva organización o cambia la búsqueda.</p></div>}
+            {loading ? <div className='platform-loading'>Sincronizando organizaciones…</div> : filteredTenants.length ? filteredTenants.map((tenant) => <OrganizationRow key={tenant.id} tenant={tenant} valuationCount={valuationByTenant[tenant.id] || 0} onManage={openManager} />) : <div className='platform-empty'><Building2 /><h3>No hay organizaciones que coincidan.</h3><p>Crea una nueva organización o cambia la búsqueda.</p></div>}
           </div>
 
           <div className='platform-table-footer'><span>Mostrando {filteredTenants.length} de {data.tenants.length} organizaciones</span><div><button type='button'>10 por página <ChevronRight /></button><button type='button' className='is-page'>1</button><button type='button'>2</button><button type='button'><ChevronRight /></button></div></div>
+        </section>
+
+        <section className='platform-panel platform-functional-summary' id='users'>
+          <div className='platform-panel-heading'><div><p>USUARIOS</p><h2>Identidades registradas</h2><small>Las cuentas aparecen aquí desde su primer inicio de sesión y luego pueden asignarse a cualquier organización.</small></div><span><UsersRound /> {data.users.length} registradas</span></div>
+          <div className='platform-user-preview-grid'>
+            {data.users.slice(0, 6).map((item: any) => <div key={item.id} className='platform-user-preview'>{item.photoURL ? <img src={item.photoURL} alt='' referrerPolicy='no-referrer' /> : <span>{String(item.displayName || item.email || 'U').slice(0, 1)}</span>}<div><strong>{item.displayName || 'Usuario'}</strong><small>{item.email}</small></div></div>)}
+            {!data.users.length && <p>Todavía no hay identidades registradas.</p>}
+          </div>
+        </section>
+
+        <section className='platform-panel platform-functional-summary' id='licenses'>
+          <div className='platform-panel-heading'><div><p>LICENCIAS</p><h2>Control comercial por organización</h2><small>Abre el icono de llave de cualquier organización para configurar plan, vencimiento, límites y módulos.</small></div><span><KeyRound /> Gestión activa</span></div>
         </section>
       </section>
     </main>
@@ -285,7 +291,7 @@ export default function PlatformAdminPage() {
           <section className='platform-form-card'>
             <div className='platform-form-card-heading'><strong>Branding</strong><small>Define la identidad visual de la organización.</small></div>
             <label><span>Nombre de la organización *</span><input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder='Ej. Mi Inmobiliaria' /></label>
-            <div className='platform-upload-block'><span>Logo</span><div><div className='platform-upload-box'><Upload /></div><p><strong>Subir logo</strong><small>PNG o JPG. Máx. 2MB</small></p></div></div>
+            <div className='platform-upload-block'><span>Logo</span><div><div className='platform-upload-box'><Upload /></div><p><strong>Subir logo</strong><small>La carga directa se conectará en la siguiente fase.</small></p></div></div>
             <label><span>Color primario</span><div className='platform-color-input'><input type='color' value={form.secondaryColor} onChange={(event) => setForm({ ...form, secondaryColor: event.target.value })} /><input value={form.secondaryColor} onChange={(event) => setForm({ ...form, secondaryColor: event.target.value })} /></div></label>
           </section>
 
@@ -319,5 +325,7 @@ export default function PlatformAdminPage() {
         </form>
       </aside>
     </div>}
+
+    {manageTenant && <TenantManagementDrawer tenant={manageTenant} users={data.users} initialTab={manageTab} onClose={() => setManageTenant(null)} />}
   </div>;
 }

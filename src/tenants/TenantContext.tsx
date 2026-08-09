@@ -4,7 +4,6 @@ import { db } from '../firebase/config';
 import { useAuth } from '../auth/AuthContext';
 
 export const DEFAULT_TENANT_ID = 'norvin';
-const BOOTSTRAP_OWNER_EMAIL = 'norvingarcia220@gmail.com';
 
 type Membership = {
   role: 'owner' | 'admin' | 'valuer' | 'agent' | 'viewer';
@@ -25,60 +24,51 @@ type TenantContextValue = {
 
 const TenantContext = createContext<TenantContextValue | null>(null);
 
-async function ensureBootstrapTenant(user: any) {
+async function ensureUserProfile(user: any) {
   if (!db) throw new Error('Firestore no está configurado.');
-
   await setDoc(doc(db, 'users', user.uid), {
     displayName: user.displayName || '',
-    email: user.email || '',
+    email: String(user.email || '').toLowerCase(),
     photoURL: user.photoURL || '',
     updatedAt: serverTimestamp(),
   }, { merge: true });
+}
 
-  const memberRef = doc(db, 'tenants', DEFAULT_TENANT_ID, 'members', user.uid);
-  let memberSnap = await getDoc(memberRef);
+async function loadTenantForUser(user: any, tenantId: string) {
+  if (!db || !tenantId) return null;
+  const [memberSnap, tenantSnap] = await Promise.all([
+    getDoc(doc(db, 'tenants', tenantId, 'members', user.uid)),
+    getDoc(doc(db, 'tenants', tenantId)),
+  ]);
 
-  if (!memberSnap.exists()) {
-    if (String(user.email || '').toLowerCase() !== BOOTSTRAP_OWNER_EMAIL) return null;
+  if (!memberSnap.exists() || !tenantSnap.exists()) return null;
+  const membership = memberSnap.data() as Membership;
+  const tenant = { id: tenantSnap.id, ...tenantSnap.data() } as any;
+  if (membership.status !== 'active') return null;
+  if (tenant.status && tenant.status !== 'active') return null;
+  return { tenant, membership };
+}
 
-    await setDoc(memberRef, {
-      role: 'owner',
-      status: 'active',
-      email: user.email || '',
-      displayName: user.displayName || '',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+async function resolveAssignedTenant(user: any) {
+  if (!db) throw new Error('Firestore no está configurado.');
+  await ensureUserProfile(user);
 
-    await setDoc(doc(db, 'tenants', DEFAULT_TENANT_ID), {
-      name: 'Norvin',
-      slug: DEFAULT_TENANT_ID,
-      status: 'active',
-      branding: {
-        organizationName: 'Norvin García',
-        primaryColor: '#0b1728',
-        secondaryColor: '#d6b75d',
-      },
-      license: {
-        status: 'active',
-        plan: 'professional',
-      },
-      createdBy: user.uid,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    }, { merge: true });
+  const mappingSnap = await getDoc(doc(db, 'userTenants', user.uid));
+  if (mappingSnap.exists()) {
+    const mapping = mappingSnap.data() as any;
+    const candidates = [
+      mapping.defaultTenantId,
+      ...(Array.isArray(mapping.tenantIds) ? mapping.tenantIds : []),
+    ].filter(Boolean);
 
-    memberSnap = await getDoc(memberRef);
+    for (const tenantId of Array.from(new Set(candidates))) {
+      const resolved = await loadTenantForUser(user, String(tenantId));
+      if (resolved) return resolved;
+    }
   }
 
-  if (!memberSnap.exists() || memberSnap.data().status !== 'active') return null;
-  const tenantSnap = await getDoc(doc(db, 'tenants', DEFAULT_TENANT_ID));
-  if (!tenantSnap.exists()) throw new Error('La organización asignada no existe.');
-
-  return {
-    tenant: { id: tenantSnap.id, ...tenantSnap.data() },
-    membership: memberSnap.data() as Membership,
-  };
+  // Compatibilidad con el primer tenant creado antes del mapa userTenants.
+  return loadTenantForUser(user, DEFAULT_TENANT_ID);
 }
 
 export function TenantProvider({ children }: { children: React.ReactNode }) {
@@ -99,11 +89,11 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     }
 
     setLoading(true);
-    ensureBootstrapTenant(user)
+    resolveAssignedTenant(user)
       .then((resolved) => {
         if (!active) return;
         if (!resolved) {
-          setError('Esta cuenta todavía no tiene acceso a una organización activa.');
+          setError('Esta cuenta todavía no tiene acceso a una organización activa. Inicia sesión una vez y solicita al administrador que te asigne una empresa.');
           return;
         }
         setTenant(resolved.tenant);
