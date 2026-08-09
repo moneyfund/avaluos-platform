@@ -8,6 +8,7 @@ import './styles/index.css';
 import './styles/navigation.css';
 import './styles/pdfControls.css';
 import './styles/persistence.css';
+import './styles/platformAdmin.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

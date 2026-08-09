@@ -5,6 +5,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isPlatformAdmin() {
+      return signedIn()
+        && request.auth.token.email == 'norvingarcia220@gmail.com';
+    }
+
     function membershipPath(tenantId) {
       return /databases/$(database)/documents/tenants/$(tenantId)/members/$(request.auth.uid);
     }
@@ -21,30 +26,36 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow create, read, update: if signedIn() && request.auth.uid == uid;
+      allow read: if isPlatformAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow update: if isPlatformAdmin() || (signedIn() && request.auth.uid == uid);
       allow delete: if false;
     }
 
     match /tenantDomains/{hostname} {
       allow read: if true;
-      allow write: if false;
+      allow create, update, delete: if isPlatformAdmin();
     }
 
     match /tenants/{tenantId} {
-      allow read: if isActiveMember(tenantId);
-      allow create, delete: if false;
-      allow update: if hasTenantRole(tenantId, ['owner', 'admin']);
+      allow read: if isPlatformAdmin() || isActiveMember(tenantId);
+      allow create: if isPlatformAdmin()
+        && request.resource.data.slug == tenantId
+        && request.resource.data.status in ['active', 'suspended', 'expired'];
+      allow update: if isPlatformAdmin() || hasTenantRole(tenantId, ['owner', 'admin']);
+      allow delete: if isPlatformAdmin();
 
       match /members/{uid} {
-        allow read: if signedIn()
-          && (request.auth.uid == uid
-          || hasTenantRole(tenantId, ['owner', 'admin']));
-        allow create, update, delete: if hasTenantRole(tenantId, ['owner', 'admin']);
+        allow read: if isPlatformAdmin()
+          || (signedIn() && request.auth.uid == uid)
+          || hasTenantRole(tenantId, ['owner', 'admin']);
+        allow create, update, delete: if isPlatformAdmin()
+          || hasTenantRole(tenantId, ['owner', 'admin']);
       }
     }
 
     match /avaluos/{avaluoId} {
-      allow read: if isActiveMember(resource.data.tenantId);
+      allow read: if isPlatformAdmin() || isActiveMember(resource.data.tenantId);
 
       allow create: if hasTenantRole(
         request.resource.data.tenantId,
@@ -52,17 +63,16 @@ service cloud.firestore {
       )
       && request.resource.data.createdBy == request.auth.uid;
 
-      allow update: if hasTenantRole(
-        resource.data.tenantId,
-        ['owner', 'admin', 'valuer', 'agent']
-      )
-      && request.resource.data.tenantId == resource.data.tenantId
-      && request.resource.data.createdBy == resource.data.createdBy;
+      allow update: if isPlatformAdmin()
+        || (hasTenantRole(
+          resource.data.tenantId,
+          ['owner', 'admin', 'valuer', 'agent']
+        )
+        && request.resource.data.tenantId == resource.data.tenantId
+        && request.resource.data.createdBy == resource.data.createdBy);
 
-      allow delete: if hasTenantRole(
-        resource.data.tenantId,
-        ['owner', 'admin']
-      );
+      allow delete: if isPlatformAdmin()
+        || hasTenantRole(resource.data.tenantId, ['owner', 'admin']);
     }
 
     match /{document=**} {

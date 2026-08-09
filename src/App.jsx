@@ -1,11 +1,14 @@
 import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
-import { History, LogOut } from 'lucide-react';
+import { History, LogOut, ShieldCheck } from 'lucide-react';
 import TerrenoWorkspace from './features/avaluos/components/TerrenoWorkspace';
 import CasaWorkspace from './features/avaluos/components/CasaWorkspace';
 import HistoryPage from './features/history/HistoryPage';
 import AuthGate from './auth/AuthGate';
 import { useAuth } from './auth/AuthContext';
 import { useTenant } from './tenants/TenantContext';
+import PlatformAdminGate from './platform/PlatformAdminGate';
+import PlatformAdminPage from './platform/PlatformAdminPage';
+import { isRootPlatformAdmin } from './platform/platformAdminAccess';
 
 function TenantGate({ children }) {
   const { loading, tenantId, error } = useTenant();
@@ -17,6 +20,7 @@ function TenantGate({ children }) {
 function AppWorkspace() {
   const { user, signOutUser } = useAuth();
   const { tenant, membership } = useTenant();
+  const platformAdmin = isRootPlatformAdmin(user);
 
   return (
     <div className='avaluos-app'>
@@ -26,6 +30,7 @@ function AppWorkspace() {
           <NavLink to='/avaluos/terrenos' className={({ isActive }) => isActive ? 'is-active' : ''}>Terrenos</NavLink>
           <NavLink to='/avaluos/casas' className={({ isActive }) => isActive ? 'is-active' : ''}>Casas</NavLink>
           <NavLink to='/historial' className={({ isActive }) => isActive ? 'is-active' : ''}><History /> Historial</NavLink>
+          {platformAdmin && <NavLink to='/platform-admin' className='platform-admin-nav-link'><ShieldCheck /> Plataforma</NavLink>}
         </div>
         <div className='avaluos-user-menu'>
           {user?.photoURL ? <img src={user.photoURL} alt='' referrerPolicy='no-referrer' /> : null}
@@ -45,6 +50,13 @@ function AppWorkspace() {
   );
 }
 
+function RoutedApp() {
+  return <Routes>
+    <Route path='/platform-admin/*' element={<PlatformAdminGate><PlatformAdminPage /></PlatformAdminGate>} />
+    <Route path='*' element={<TenantGate><AppWorkspace /></TenantGate>} />
+  </Routes>;
+}
+
 export default function App() {
-  return <AuthGate><TenantGate><AppWorkspace /></TenantGate></AuthGate>;
+  return <AuthGate><RoutedApp /></AuthGate>;
 }
