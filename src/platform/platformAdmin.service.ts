@@ -240,19 +240,25 @@ export async function updatePlatformTenantProfile(tenantId: string, input: any) 
 
 export async function updatePlatformTenantLicense(tenantId: string, input: any) {
   if (!db) throw new Error('Firestore no está configurado.');
+  const tenantRef = doc(db, 'tenants', tenantId);
+  const tenantSnap = await getDoc(tenantRef);
+  if (!tenantSnap.exists()) throw new Error('La organización ya no existe.');
+
+  const currentLicense = (tenantSnap.data() as any).license || {};
   const status = input.status || 'active';
   const plan = input.plan || 'professional';
   const expiresAt = input.expiresAt
     ? Timestamp.fromDate(new Date(`${input.expiresAt}T23:59:59`))
     : null;
 
-  await updateDoc(doc(db, 'tenants', tenantId), {
+  await updateDoc(tenantRef, {
     status,
     plan,
     license: {
+      ...currentLicense,
       status,
       plan,
-      startsAt: input.startsAt || null,
+      startsAt: currentLicense.startsAt || serverTimestamp(),
       expiresAt,
       limits: {
         maxUsers: Math.max(1, Number(input.maxUsers || 1)),
