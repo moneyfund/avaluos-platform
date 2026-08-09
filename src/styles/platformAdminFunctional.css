@@ -1,0 +1,200 @@
+.platform-filter-button.is-active {
+  border-color: rgba(195, 145, 24, .38);
+  background: #fff9e9;
+  color: #a87500;
+}
+
+.platform-filter-panel {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin: -2px 0 18px;
+  padding: 14px 16px;
+  border: 1px solid #eee4d3;
+  border-radius: 14px;
+  background: #fffdf8;
+}
+.platform-filter-panel label { display: grid; gap: 6px; min-width: 170px; }
+.platform-filter-panel label span { font-size: .69rem; font-weight: 800; color: #8b8174; text-transform: uppercase; letter-spacing: .05em; }
+.platform-filter-panel select,
+.platform-filter-panel button {
+  height: 38px;
+  border: 1px solid #e6dccb;
+  border-radius: 10px;
+  background: #fff;
+  color: #403a33;
+  padding: 0 11px;
+}
+.platform-filter-panel button { cursor: pointer; font-weight: 750; }
+
+.platform-table-footer select {
+  height: 38px;
+  border: 1px solid #e9dfcf;
+  border-radius: 10px;
+  background: #fff;
+  color: #7e756a;
+  padding: 0 10px;
+}
+.platform-table-footer button:disabled { opacity: .38; cursor: not-allowed; }
+.platform-table-footer > div > span { color: #9b9185; font-size: .75rem; }
+
+.platform-org-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: inherit;
+  padding: 4px;
+}
+
+.platform-license-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.platform-license-card {
+  display: grid;
+  gap: 11px;
+  padding: 18px;
+  border: 1px solid #eee5d7;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fff, #fffdf8);
+  box-shadow: 0 12px 30px rgba(77, 58, 26, .045);
+}
+.platform-license-card > div:first-child { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.platform-license-card > div:first-child > strong { color: #28231e; font-size: .92rem; }
+.platform-license-card p { margin: 0; color: #8d8378; font-size: .73rem; }
+.platform-license-card small { color: #91877b; font-size: .69rem; line-height: 1.45; }
+.platform-license-card button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 0;
+  padding: 4px 0 0;
+  background: transparent;
+  color: #a7770b;
+  font-weight: 800;
+  cursor: pointer;
+}
+.platform-license-card button svg { width: 15px; }
+.platform-license-progress {
+  position: relative;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f1eadf;
+}
+.platform-license-progress i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #b98409, #e0b94e);
+}
+
+.platform-system-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.platform-system-grid article {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #eee4d4;
+  border-radius: 15px;
+  background: #fff;
+}
+.platform-system-grid article > svg {
+  width: 19px;
+  color: #bc8a15;
+}
+.platform-system-grid article div { display: grid; gap: 3px; }
+.platform-system-grid article strong { color: #322c26; font-size: .81rem; }
+.platform-system-grid article small { color: #998f84; font-size: .68rem; }
+.platform-system-grid article > span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #eff9f2;
+  color: #318a50;
+  font-size: .66rem;
+  font-weight: 800;
+}
+
+.tenant-manager-logo {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  border: 1px solid #ead9af;
+  border-radius: 16px;
+  background: #fffaf0;
+  padding: 7px;
+}
+.tenant-logo-uploader { display: grid; gap: 8px; }
+.tenant-logo-uploader > span { color: #6f665c; font-size: .72rem; font-weight: 800; }
+.tenant-logo-uploader > div { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.tenant-logo-preview {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px dashed #dcccae;
+  border-radius: 14px;
+  background: #fffaf0;
+  color: #bd8c1b;
+}
+.tenant-logo-preview img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+.tenant-logo-preview svg { width: 24px; }
+.tenant-logo-button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 7px !important;
+  min-height: 39px;
+  padding: 0 12px;
+  border: 1px solid #d9bd72;
+  border-radius: 10px;
+  background: #fff8e3;
+  color: #966900;
+  font-size: .72rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+.tenant-logo-button svg { width: 16px; }
+.tenant-logo-button input { display: none; }
+.tenant-logo-uploader small { color: #a1978b; font-size: .66rem; }
+.tenant-helper.is-warning { color: #9b6500; background: #fff7dd; border: 1px solid #f0d98f; border-radius: 10px; padding: 9px 11px; }
+
+.feature-disabled-page {
+  min-height: calc(100vh - 86px);
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background: #f8f6f1;
+}
+.feature-disabled-page > div {
+  width: min(650px, 100%);
+  padding: 42px;
+  text-align: center;
+  border: 1px solid #eadfce;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 22px 60px rgba(81, 60, 25, .08);
+}
+.feature-disabled-page svg { width: 34px; height: 34px; color: #bd8a13; margin-bottom: 12px; }
+.feature-disabled-page span { display: block; color: #b07d08; font-size: .7rem; font-weight: 900; letter-spacing: .12em; }
+.feature-disabled-page h1 { margin: 12px 0 8px; color: #28231e; font-size: clamp(1.7rem, 4vw, 2.6rem); }
+.feature-disabled-page p { margin: 0; color: #8d8378; line-height: 1.6; }
+
+@media (max-width: 1100px) {
+  .platform-license-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .platform-filter-panel { align-items: stretch; flex-direction: column; }
+  .platform-filter-panel label { min-width: 0; }
+  .platform-license-grid, .platform-system-grid { grid-template-columns: 1fr; }
+  .platform-system-grid article { grid-template-columns: 34px 1fr; }
+  .platform-system-grid article > span { grid-column: 2; justify-self: start; }
+}
