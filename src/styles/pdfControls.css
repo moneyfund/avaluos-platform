@@ -1,0 +1,9 @@
+.pdf-download-wrap { padding: 18px 20px 0; }
+.pdf-download-button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; border: 1px solid rgba(214,183,93,.38); border-radius: 12px; padding: 11px 16px; background: linear-gradient(135deg, #d6b75d, #b99032); color: #101827; font-weight: 800; box-shadow: 0 10px 24px rgba(0,0,0,.15); }
+.pdf-download-button:hover:not(:disabled) { filter: brightness(1.05); transform: translateY(-1px); }
+.pdf-download-button:disabled { cursor: wait; opacity: .72; }
+.pdf-download-button svg { width: 18px; height: 18px; }
+.pdf-download-error { margin: 9px 0 0; color: #fecaca; font-size: .86rem; font-weight: 650; }
+.pdf-spin { animation: pdf-spin .8s linear infinite; }
+@keyframes pdf-spin { to { transform: rotate(360deg); } }
+@media (max-width: 680px) { .pdf-download-button { width: 100%; } .pdf-download-wrap { padding-inline: 14px; } }
