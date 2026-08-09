@@ -32,6 +32,11 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /userTenants/{uid} {
+      allow read: if isPlatformAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create, update, delete: if isPlatformAdmin();
+    }
+
     match /tenantDomains/{hostname} {
       allow read: if true;
       allow create, update, delete: if isPlatformAdmin();
