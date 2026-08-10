@@ -3,6 +3,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import AvaluoPdfTemplate from './AvaluoPdfTemplate';
 import HouseReportPDF from './HouseReportPDF';
+import AmyLuxuryReport from './templates/amy/AmyLuxuryReport';
 
 const IMAGE_TIMEOUT_MS = 8000;
 const HTML2CANVAS_TIMEOUT_MS = 30000;
@@ -73,8 +74,14 @@ const prepareImage = async (file?: File | null, url?: string) => {
 const prepareAvaluoImages = async (avaluo: any) => {
   const localGallery = Array.isArray(avaluo?.imagenesAdicionalesFiles) ? avaluo.imagenesAdicionalesFiles : [];
   const remoteGallery = Array.isArray(avaluo?.imagenesAdicionales) ? avaluo.imagenesAdicionales : [];
+  const logoUrl = avaluo?.reportConfig?.logoUrl || '';
+  const preparedLogo = logoUrl ? await prepareImage(null, logoUrl) : '';
   return {
     ...avaluo,
+    reportConfig: avaluo?.reportConfig ? {
+      ...avaluo.reportConfig,
+      logoUrl: preparedLogo || logoUrl,
+    } : avaluo?.reportConfig,
     imagenPrincipalBase64: await prepareImage(avaluo?.imagenPrincipalFile, avaluo?.imagenPrincipalUrl || avaluo?.imagenPrincipal),
     imagenesAdicionalesBase64: await Promise.all(
       (localGallery.length ? localGallery.slice(0, 5).map((file: File) => prepareImage(file)) : remoteGallery.slice(0, 5).map((url: string) => prepareImage(null, url))),
@@ -92,6 +99,13 @@ const waitForImages = async (host: HTMLElement) => {
       }), IMAGE_TIMEOUT_MS, 'Tiempo agotado esperando imágenes.').catch(() => undefined)));
 };
 
+const resolvePdfTemplateId = (avaluo: any) => {
+  const explicit = String(avaluo?.reportConfig?.pdfTemplateId || avaluo?.pdfTemplateId || '').trim();
+  if (explicit) return explicit;
+  const tenantId = String(avaluo?.tenantId || avaluo?.reportConfig?.tenantId || '').trim().toLowerCase();
+  return tenantId === 'amyblandon' ? 'amy-luxury-v1' : 'default-v1';
+};
+
 export async function exportAvaluoToPdf(avaluo: any) {
   const host = document.createElement('div');
   host.style.position = 'fixed';
@@ -105,9 +119,17 @@ export async function exportAvaluoToPdf(avaluo: any) {
 
   try {
     const prepared = await prepareAvaluoImages(avaluo);
-    root.render(prepared?.tipoPropiedad === 'casa' ? <HouseReportPDF avaluo={prepared} /> : <AvaluoPdfTemplate avaluo={prepared} />);
+    const templateId = resolvePdfTemplateId(prepared);
+    if (templateId === 'amy-luxury-v1') {
+      root.render(<AmyLuxuryReport avaluo={prepared} />);
+    } else {
+      root.render(prepared?.tipoPropiedad === 'casa' ? <HouseReportPDF avaluo={prepared} /> : <AvaluoPdfTemplate avaluo={prepared} />);
+    }
     await nextFrame();
     await nextFrame();
+    if (document.fonts?.ready) {
+      await withTimeout(document.fonts.ready, 5000, 'Tiempo agotado cargando tipografías.').catch(() => undefined);
+    }
     await waitForImages(host);
 
     const pages = Array.from(host.querySelectorAll('.avaluo-pdf-page')) as HTMLElement[];
@@ -128,7 +150,8 @@ export async function exportAvaluoToPdf(avaluo: any) {
       if (index > 0) pdf.addPage();
       pdf.addImage(image, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
     }
-    pdf.save(`Informe-Avaluo-${slug(prepared?.titulo || prepared?.id)}.pdf`);
+    const company = templateId === 'amy-luxury-v1' ? 'Amy-Blandon' : 'Avaluo';
+    pdf.save(`Informe-${company}-${slug(prepared?.titulo || prepared?.id)}.pdf`);
   } finally {
     root.unmount();
     host.remove();
