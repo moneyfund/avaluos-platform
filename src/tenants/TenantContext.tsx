@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../auth/AuthContext';
@@ -29,6 +29,7 @@ type TenantContextValue = {
   limits: { maxUsers: number; monthlyAvaluos: number };
   reportConfig: any;
   canUseFeature: (feature: TenantFeature) => boolean;
+  updateLocalBranding: (patch: Record<string, any>) => void;
 };
 
 const TenantContext = createContext<TenantContextValue | null>(null);
@@ -69,9 +70,6 @@ async function resolveAssignedTenant(user: any) {
   if (!db) throw new Error('Firestore no está configurado.');
   await ensureUserProfile(user);
 
-  // Cuando una web cliente abre Avalúos Platform con ?tenant=slug,
-  // ese tenant se vuelve el destino explícito. Nunca se concede acceso
-  // por el parámetro: loadTenantForUser sigue exigiendo membresía activa.
   const requestedTenantId = requestedTenantIdFromUrl();
   if (requestedTenantId) {
     return loadTenantForUser(user, requestedTenantId);
@@ -91,7 +89,6 @@ async function resolveAssignedTenant(user: any) {
     }
   }
 
-  // Compatibilidad con el primer tenant creado antes del mapa userTenants.
   return loadTenantForUser(user, DEFAULT_TENANT_ID);
 }
 
@@ -151,6 +148,16 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     return () => { active = false; };
   }, [user]);
 
+  const updateLocalBranding = useCallback((patch: Record<string, any>) => {
+    setTenant((current: any) => current ? {
+      ...current,
+      branding: {
+        ...(current.branding || {}),
+        ...patch,
+      },
+    } : current);
+  }, []);
+
   const value = useMemo<TenantContextValue>(() => {
     const role = membership?.role;
     const license = tenant?.license || {};
@@ -194,8 +201,9 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       limits,
       reportConfig,
       canUseFeature: (feature: TenantFeature) => licenseActive && features[feature],
+      updateLocalBranding,
     };
-  }, [tenant, membership, loading, error]);
+  }, [tenant, membership, loading, error, updateLocalBranding]);
 
   return <TenantContext.Provider value={value}>{children}</TenantContext.Provider>;
 }
