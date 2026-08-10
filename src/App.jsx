@@ -3,6 +3,7 @@ import { History, KeyRound, LogOut, ShieldCheck } from 'lucide-react';
 import TerrenoWorkspace from './features/avaluos/components/TerrenoWorkspace';
 import CasaWorkspace from './features/avaluos/components/CasaWorkspace';
 import HistoryPage from './features/history/HistoryPage';
+import AccessLanding from './auth/AccessLanding';
 import AuthGate from './auth/AuthGate';
 import { useAuth } from './auth/AuthContext';
 import { TenantProvider, useTenant } from './tenants/TenantContext';
@@ -13,8 +14,8 @@ import { isRootPlatformAdmin } from './platform/platformAdminAccess';
 function TenantGate({ children }) {
   const { loading, tenantId, error, licenseActive, licenseExpired, licenseStatus } = useTenant();
   if (loading) return <div className='tenant-gate'><div><span>Preparando organización</span><h1>Conectando tu espacio de avalúos...</h1></div></div>;
-  if (!tenantId) return <div className='tenant-gate'><div><span>Acceso pendiente</span><h1>No hay una organización activa para esta cuenta.</h1><p>{error || 'Solicita acceso al administrador de la plataforma.'}</p></div></div>;
-  if (!licenseActive) return <div className='tenant-gate'><div><span>LICENCIA NO DISPONIBLE</span><h1>{licenseExpired || licenseStatus === 'expired' ? 'La licencia de esta organización ha vencido.' : 'La licencia de esta organización está suspendida.'}</h1><p>Contacta al administrador de Avalúos Platform para reactivar el servicio.</p></div></div>;
+  if (!tenantId) return <div className='tenant-gate'><div><span>Acceso pendiente</span><h1>No hay una organización activa para esta cuenta.</h1><p>{error || 'Solicita acceso al administrador de la plataforma.'}</p><a href='/'>Cambiar cuenta de acceso</a></div></div>;
+  if (!licenseActive) return <div className='tenant-gate'><div><span>LICENCIA NO DISPONIBLE</span><h1>{licenseExpired || licenseStatus === 'expired' ? 'La licencia de esta organización ha vencido.' : 'La licencia de esta organización está suspendida.'}</h1><p>Contacta al administrador de Avalúos Platform para reactivar el servicio.</p><a href='/'>Volver a la pantalla de acceso</a></div></div>;
   return children;
 }
 
@@ -45,7 +46,6 @@ function AppWorkspace() {
         </div>
       </nav>
       <Routes>
-        <Route path='/' element={<Navigate to={defaultRoute} replace />} />
         <Route path='/avaluos' element={<Navigate to={defaultRoute} replace />} />
         <Route path='/avaluos/terrenos' element={features.terrenos ? <TerrenoWorkspace /> : <DisabledFeature label='Terrenos' />} />
         <Route path='/avaluos/casas' element={features.casas ? <CasaWorkspace /> : <DisabledFeature label='Casas' />} />
@@ -57,16 +57,17 @@ function AppWorkspace() {
 }
 
 function TenantWorkspaceRoute() {
-  return <TenantProvider><TenantGate><AppWorkspace /></TenantGate></TenantProvider>;
+  return <AuthGate><TenantProvider><TenantGate><AppWorkspace /></TenantGate></TenantProvider></AuthGate>;
 }
 
 function RoutedApp() {
   return <Routes>
+    <Route path='/' element={<AccessLanding />} />
     <Route path='/platform-admin/*' element={<PlatformAdminGate><PlatformAdminPage /></PlatformAdminGate>} />
     <Route path='*' element={<TenantWorkspaceRoute />} />
   </Routes>;
 }
 
 export default function App() {
-  return <AuthGate><RoutedApp /></AuthGate>;
+  return <RoutedApp />;
 }
