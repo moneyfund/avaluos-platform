@@ -1,8 +1,9 @@
 import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
-import { History, Home, KeyRound, LogOut, MapPinned, ShieldCheck, Sparkles } from 'lucide-react';
+import { History, Home, KeyRound, LogOut, MapPinned, Palette, ShieldCheck, Sparkles } from 'lucide-react';
 import TerrenoWorkspace from './features/avaluos/components/TerrenoWorkspace';
 import CasaWorkspace from './features/avaluos/components/CasaWorkspace';
 import HistoryPage from './features/history/HistoryPage';
+import PersonalizationPage from './features/personalization/PersonalizationPage';
 import AccessLanding from './auth/AccessLanding';
 import AuthGate from './auth/AuthGate';
 import { useAuth } from './auth/AuthContext';
@@ -25,17 +26,34 @@ function DisabledFeature({ label }) {
 
 function AppWorkspace() {
   const { user, signOutUser } = useAuth();
-  const { tenant, membership, features } = useTenant();
+  const { tenant, membership, features, canAdmin } = useTenant();
   const location = useLocation();
   const platformAdmin = isRootPlatformAdmin(user);
+  const canPersonalize = canAdmin || platformAdmin;
   const defaultRoute = features.terrenos ? '/avaluos/terrenos' : features.casas ? '/avaluos/casas' : '/historial';
   const branding = tenant?.branding || {};
-  const accent = branding.secondaryColor || '#c8a85b';
+  const portalTheme = branding.portalTheme || {};
+  const accent = portalTheme.accentColor || branding.secondaryColor || '#c8a85b';
   const initials = String(branding.shortName || tenant?.name || 'AP').split(/\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 3).toUpperCase();
-  const currentSection = location.pathname.includes('/casas') ? 'Avalúo de casa' : location.pathname.includes('/historial') ? 'Historial' : 'Avalúo de terreno';
+  const currentSection = location.pathname.includes('/casas')
+    ? 'Avalúo de casa'
+    : location.pathname.includes('/historial')
+      ? 'Historial'
+      : location.pathname.includes('/personalizacion')
+        ? 'Personalización'
+        : 'Avalúo de terreno';
+  const workspaceStyle = {
+    '--client-accent': accent,
+    '--client-page-bg': portalTheme.pageBackground || '#f5f4f0',
+    '--client-sidebar-bg': portalTheme.sidebarBackground || '#ffffff',
+    '--client-topbar-bg': portalTheme.topbarBackground || '#faf9f6',
+    '--client-card-bg': portalTheme.cardBackground || '#ffffff',
+    '--client-nav-active-bg': portalTheme.navActiveBackground || '#fff9eb',
+    '--client-ink': portalTheme.textColor || '#1d2430',
+  };
 
   return (
-    <div className='avaluos-app client-workspace' style={{ '--client-accent': accent }}>
+    <div className='avaluos-app client-workspace' style={workspaceStyle}>
       <aside className='client-sidebar'>
         <div className='client-brand'>
           <div className='client-brand-mark'>{branding.logoUrl ? <img src={branding.logoUrl} alt={`Logo ${tenant?.name || 'organización'}`} /> : <span>{initials}</span>}</div>
@@ -52,6 +70,10 @@ function AppWorkspace() {
           {features.terrenos && <NavLink to='/avaluos/terrenos' className={({ isActive }) => isActive ? 'is-active' : ''}><MapPinned /><span><strong>Terrenos</strong><em>Valoración de suelo</em></span></NavLink>}
           {features.casas && <NavLink to='/avaluos/casas' className={({ isActive }) => isActive ? 'is-active' : ''}><Home /><span><strong>Casas</strong><em>Terreno + construcción</em></span></NavLink>}
           <NavLink to='/historial' className={({ isActive }) => isActive ? 'is-active' : ''}><History /><span><strong>Historial</strong><em>Expedientes guardados</em></span></NavLink>
+          {canPersonalize && <>
+            <small className='client-nav-settings-label'>CONFIGURACIÓN</small>
+            <NavLink to='/personalizacion' className={({ isActive }) => isActive ? 'is-active' : ''}><Palette /><span><strong>Personalización</strong><em>Colores y apariencia</em></span></NavLink>
+          </>}
         </nav>
 
         <div className='client-sidebar-footer'>
@@ -82,6 +104,7 @@ function AppWorkspace() {
             <Route path='/avaluos/terrenos' element={features.terrenos ? <TerrenoWorkspace /> : <DisabledFeature label='Terrenos' />} />
             <Route path='/avaluos/casas' element={features.casas ? <CasaWorkspace /> : <DisabledFeature label='Casas' />} />
             <Route path='/historial' element={<HistoryPage />} />
+            <Route path='/personalizacion' element={<PersonalizationPage canEdit={canPersonalize} />} />
             <Route path='*' element={<Navigate to={defaultRoute} replace />} />
           </Routes>
         </div>
