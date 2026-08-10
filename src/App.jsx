@@ -5,7 +5,7 @@ import CasaWorkspace from './features/avaluos/components/CasaWorkspace';
 import HistoryPage from './features/history/HistoryPage';
 import AuthGate from './auth/AuthGate';
 import { useAuth } from './auth/AuthContext';
-import { useTenant } from './tenants/TenantContext';
+import { TenantProvider, useTenant } from './tenants/TenantContext';
 import PlatformAdminGate from './platform/PlatformAdminGate';
 import PlatformAdminPage from './platform/PlatformAdminPage';
 import { isRootPlatformAdmin } from './platform/platformAdminAccess';
@@ -56,10 +56,14 @@ function AppWorkspace() {
   );
 }
 
+function TenantWorkspaceRoute() {
+  return <TenantProvider><TenantGate><AppWorkspace /></TenantGate></TenantProvider>;
+}
+
 function RoutedApp() {
   return <Routes>
     <Route path='/platform-admin/*' element={<PlatformAdminGate><PlatformAdminPage /></PlatformAdminGate>} />
-    <Route path='*' element={<TenantGate><AppWorkspace /></TenantGate>} />
+    <Route path='*' element={<TenantWorkspaceRoute />} />
   </Routes>;
 }
 
