@@ -14,6 +14,14 @@ service cloud.firestore {
       return /databases/$(database)/documents/tenants/$(tenantId)/members/$(request.auth.uid);
     }
 
+    function tenantPath(tenantId) {
+      return /databases/$(database)/documents/tenants/$(tenantId);
+    }
+
+    function invitePath(tenantId) {
+      return /databases/$(database)/documents/tenants/$(tenantId)/invites/$(request.auth.token.email);
+    }
+
     function isActiveMember(tenantId) {
       return signedIn()
         && exists(membershipPath(tenantId))
@@ -25,6 +33,21 @@ service cloud.firestore {
         && get(membershipPath(tenantId)).data.role in roles;
     }
 
+    function hasEmailInvite(tenantId) {
+      return signedIn()
+        && request.auth.token.email != null
+        && exists(invitePath(tenantId))
+        && get(invitePath(tenantId)).data.status == 'active'
+        && get(invitePath(tenantId)).data.email == request.auth.token.email;
+    }
+
+    function isPrimaryTenantEmail(tenantId) {
+      return signedIn()
+        && request.auth.token.email != null
+        && exists(tenantPath(tenantId))
+        && get(tenantPath(tenantId)).data.email == request.auth.token.email;
+    }
+
     match /users/{uid} {
       allow read: if isPlatformAdmin() || (signedIn() && request.auth.uid == uid);
       allow create: if signedIn() && request.auth.uid == uid;
@@ -34,7 +57,11 @@ service cloud.firestore {
 
     match /userTenants/{uid} {
       allow read: if isPlatformAdmin() || (signedIn() && request.auth.uid == uid);
-      allow create, update, delete: if isPlatformAdmin();
+      allow create, update: if isPlatformAdmin()
+        || (signedIn()
+          && request.auth.uid == uid
+          && request.resource.data.uid == uid);
+      allow delete: if isPlatformAdmin();
     }
 
     match /tenantDomains/{hostname} {
@@ -43,18 +70,52 @@ service cloud.firestore {
     }
 
     match /tenants/{tenantId} {
-      allow read: if isPlatformAdmin() || isActiveMember(tenantId);
+      allow read: if isPlatformAdmin()
+        || isActiveMember(tenantId)
+        || (signedIn()
+          && request.auth.token.email != null
+          && resource.data.email == request.auth.token.email);
+
       allow create: if isPlatformAdmin()
         && request.resource.data.slug == tenantId
         && request.resource.data.status in ['active', 'suspended', 'expired'];
+
       allow update: if isPlatformAdmin() || hasTenantRole(tenantId, ['owner', 'admin']);
       allow delete: if isPlatformAdmin();
+
+      match /invites/{email} {
+        allow read: if isPlatformAdmin()
+          || hasTenantRole(tenantId, ['owner', 'admin'])
+          || (signedIn() && request.auth.token.email == email);
+
+        allow create, update: if isPlatformAdmin()
+          || hasTenantRole(tenantId, ['owner', 'admin']);
+
+        allow delete: if isPlatformAdmin()
+          || hasTenantRole(tenantId, ['owner', 'admin'])
+          || (signedIn() && request.auth.token.email == email);
+      }
 
       match /members/{uid} {
         allow read: if isPlatformAdmin()
           || (signedIn() && request.auth.uid == uid)
           || hasTenantRole(tenantId, ['owner', 'admin']);
-        allow create, update, delete: if isPlatformAdmin()
+
+        allow create: if isPlatformAdmin()
+          || hasTenantRole(tenantId, ['owner', 'admin'])
+          || (signedIn()
+            && request.auth.uid == uid
+            && request.auth.token.email != null
+            && request.resource.data.email == request.auth.token.email
+            && request.resource.data.status == 'active'
+            && (
+              (hasEmailInvite(tenantId)
+                && request.resource.data.role == get(invitePath(tenantId)).data.role)
+              || (isPrimaryTenantEmail(tenantId)
+                && request.resource.data.role == 'owner')
+            ));
+
+        allow update, delete: if isPlatformAdmin()
           || hasTenantRole(tenantId, ['owner', 'admin']);
       }
     }

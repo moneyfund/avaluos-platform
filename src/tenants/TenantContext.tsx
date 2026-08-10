@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../auth/AuthContext';
+import { claimTenantAccess } from './tenantAccess.service';
 
 export const DEFAULT_TENANT_ID = 'norvin';
 
@@ -45,12 +46,23 @@ async function ensureUserProfile(user: any) {
 
 async function loadTenantForUser(user: any, tenantId: string) {
   if (!db || !tenantId) return null;
-  const [memberSnap, tenantSnap] = await Promise.all([
-    getDoc(doc(db, 'tenants', tenantId, 'members', user.uid)),
-    getDoc(doc(db, 'tenants', tenantId)),
-  ]);
 
-  if (!memberSnap.exists() || !tenantSnap.exists()) return null;
+  const memberRef = doc(db, 'tenants', tenantId, 'members', user.uid);
+  let memberSnap = await getDoc(memberRef);
+
+  // Si todavía no existe una membresía, se intenta reclamar una autorización
+  // por correo. Esto cubre tanto invitaciones explícitas como el correo
+  // principal configurado por Platform Admin para el propietario del tenant.
+  if (!memberSnap.exists()) {
+    const claimed = await claimTenantAccess(user, tenantId);
+    if (claimed) memberSnap = await getDoc(memberRef);
+  }
+
+  if (!memberSnap.exists()) return null;
+
+  const tenantSnap = await getDoc(doc(db, 'tenants', tenantId));
+  if (!tenantSnap.exists()) return null;
+
   const membership = memberSnap.data() as Membership;
   const tenant = { id: tenantSnap.id, ...tenantSnap.data() } as any;
   if (membership.status !== 'active') return null;
@@ -70,8 +82,8 @@ async function resolveAssignedTenant(user: any) {
   await ensureUserProfile(user);
 
   // Cuando una web cliente abre Avalúos Platform con ?tenant=slug,
-  // ese tenant se vuelve el destino explícito. Nunca se concede acceso
-  // por el parámetro: loadTenantForUser sigue exigiendo membresía activa.
+  // ese tenant se vuelve el destino explícito. El parámetro nunca concede
+  // acceso por sí solo: debe existir membresía o autorización por correo.
   const requestedTenantId = requestedTenantIdFromUrl();
   if (requestedTenantId) {
     return loadTenantForUser(user, requestedTenantId);
@@ -135,8 +147,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         if (!resolved) {
           const requestedTenantId = requestedTenantIdFromUrl();
           setError(requestedTenantId
-            ? `Esta cuenta todavía no tiene acceso activo a la organización “${requestedTenantId}”. Solicita al administrador de Avalúos Platform que te asigne a ese espacio.`
-            : 'Esta cuenta todavía no tiene acceso a una organización activa. Inicia sesión una vez y solicita al administrador que te asigne una empresa.');
+            ? `Esta cuenta todavía no está autorizada para la organización “${requestedTenantId}”. Verifica que el correo de acceso configurado en Platform Admin coincida exactamente con la cuenta de Google elegida.`
+            : 'Esta cuenta todavía no tiene acceso a una organización activa. Solicita al administrador que la asigne a una empresa.');
           return;
         }
         setTenant(resolved.tenant);
