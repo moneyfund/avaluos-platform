@@ -1,5 +1,5 @@
-import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
-import { History, KeyRound, LogOut, ShieldCheck } from 'lucide-react';
+import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { History, Home, KeyRound, LogOut, MapPinned, ShieldCheck, Sparkles } from 'lucide-react';
 import TerrenoWorkspace from './features/avaluos/components/TerrenoWorkspace';
 import CasaWorkspace from './features/avaluos/components/CasaWorkspace';
 import HistoryPage from './features/history/HistoryPage';
@@ -26,32 +26,66 @@ function DisabledFeature({ label }) {
 function AppWorkspace() {
   const { user, signOutUser } = useAuth();
   const { tenant, membership, features } = useTenant();
+  const location = useLocation();
   const platformAdmin = isRootPlatformAdmin(user);
   const defaultRoute = features.terrenos ? '/avaluos/terrenos' : features.casas ? '/avaluos/casas' : '/historial';
+  const branding = tenant?.branding || {};
+  const accent = branding.secondaryColor || '#c8a85b';
+  const initials = String(branding.shortName || tenant?.name || 'AP').split(/\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 3).toUpperCase();
+  const currentSection = location.pathname.includes('/casas') ? 'Avalúo de casa' : location.pathname.includes('/historial') ? 'Historial' : 'Avalúo de terreno';
 
   return (
-    <div className='avaluos-app'>
-      <nav className='avaluos-topnav' aria-label='Navegación de avalúos'>
-        <div><strong>{tenant?.name || 'Avalúos Platform'}</strong><span>Avalúos Platform · {membership?.role || 'miembro'}</span></div>
-        <div className='avaluos-topnav-links'>
-          {features.terrenos && <NavLink to='/avaluos/terrenos' className={({ isActive }) => isActive ? 'is-active' : ''}>Terrenos</NavLink>}
-          {features.casas && <NavLink to='/avaluos/casas' className={({ isActive }) => isActive ? 'is-active' : ''}>Casas</NavLink>}
-          <NavLink to='/historial' className={({ isActive }) => isActive ? 'is-active' : ''}><History /> Historial</NavLink>
-          {platformAdmin && <NavLink to='/platform-admin' className='platform-admin-nav-link'><ShieldCheck /> Plataforma</NavLink>}
+    <div className='avaluos-app client-workspace' style={{ '--client-accent': accent }}>
+      <aside className='client-sidebar'>
+        <div className='client-brand'>
+          <div className='client-brand-mark'>{branding.logoUrl ? <img src={branding.logoUrl} alt={`Logo ${tenant?.name || 'organización'}`} /> : <span>{initials}</span>}</div>
+          <div><strong>{tenant?.name || 'Avalúos Platform'}</strong><small>Workspace de valoración</small></div>
         </div>
-        <div className='avaluos-user-menu'>
-          {user?.photoURL ? <img src={user.photoURL} alt='' referrerPolicy='no-referrer' /> : null}
-          <span><strong>{user?.displayName || 'Usuario'}</strong><small>{user?.email}</small></span>
-          <button type='button' onClick={signOutUser} aria-label='Cerrar sesión'><LogOut /></button>
+
+        <div className='client-sidebar-intro'>
+          <span><Sparkles /> Plataforma profesional</span>
+          <p>Valora, documenta y conserva cada expediente desde un solo espacio.</p>
         </div>
-      </nav>
-      <Routes>
-        <Route path='/avaluos' element={<Navigate to={defaultRoute} replace />} />
-        <Route path='/avaluos/terrenos' element={features.terrenos ? <TerrenoWorkspace /> : <DisabledFeature label='Terrenos' />} />
-        <Route path='/avaluos/casas' element={features.casas ? <CasaWorkspace /> : <DisabledFeature label='Casas' />} />
-        <Route path='/historial' element={<HistoryPage />} />
-        <Route path='*' element={<Navigate to={defaultRoute} replace />} />
-      </Routes>
+
+        <nav className='client-nav' aria-label='Módulos de avalúos'>
+          <small>MÓDULOS</small>
+          {features.terrenos && <NavLink to='/avaluos/terrenos' className={({ isActive }) => isActive ? 'is-active' : ''}><MapPinned /><span><strong>Terrenos</strong><em>Valoración de suelo</em></span></NavLink>}
+          {features.casas && <NavLink to='/avaluos/casas' className={({ isActive }) => isActive ? 'is-active' : ''}><Home /><span><strong>Casas</strong><em>Terreno + construcción</em></span></NavLink>}
+          <NavLink to='/historial' className={({ isActive }) => isActive ? 'is-active' : ''}><History /><span><strong>Historial</strong><em>Expedientes guardados</em></span></NavLink>
+        </nav>
+
+        <div className='client-sidebar-footer'>
+          {platformAdmin && <NavLink to='/platform-admin' className='client-platform-link'><ShieldCheck /> Administración central</NavLink>}
+          <div className='client-user-card'>
+            {user?.photoURL ? <img src={user.photoURL} alt='' referrerPolicy='no-referrer' /> : <span className='client-user-avatar'>{String(user?.displayName || user?.email || 'U').slice(0, 1).toUpperCase()}</span>}
+            <div><strong>{user?.displayName || 'Usuario'}</strong><small>{membership?.role || 'miembro'}</small></div>
+            <button type='button' onClick={signOutUser} aria-label='Cerrar sesión'><LogOut /></button>
+          </div>
+        </div>
+      </aside>
+
+      <section className='client-main'>
+        <header className='client-topbar'>
+          <div className='client-breadcrumb'><small>{tenant?.name || 'Organización'} / Avalúos</small><strong>{currentSection}</strong></div>
+          <div className='client-topbar-right'>
+            <span className='client-status-pill'><i /> Sistema activo</span>
+            <div className='client-top-user'>
+              {user?.photoURL ? <img src={user.photoURL} alt='' referrerPolicy='no-referrer' /> : null}
+              <span><strong>{user?.displayName || 'Usuario'}</strong><small>{user?.email}</small></span>
+            </div>
+          </div>
+        </header>
+
+        <div className='client-page-stage'>
+          <Routes>
+            <Route path='/avaluos' element={<Navigate to={defaultRoute} replace />} />
+            <Route path='/avaluos/terrenos' element={features.terrenos ? <TerrenoWorkspace /> : <DisabledFeature label='Terrenos' />} />
+            <Route path='/avaluos/casas' element={features.casas ? <CasaWorkspace /> : <DisabledFeature label='Casas' />} />
+            <Route path='/historial' element={<HistoryPage />} />
+            <Route path='*' element={<Navigate to={defaultRoute} replace />} />
+          </Routes>
+        </div>
+      </section>
     </div>
   );
 }

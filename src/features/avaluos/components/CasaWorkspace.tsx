@@ -54,23 +54,29 @@ export default function CasaWorkspace() {
 
   return <main className='terrain-page'>
     <header className='terrain-hero'>
-      <div><p className='terrain-kicker'>Avalúos Platform · núcleo independiente</p><h1>Avalúo técnico de casa</h1><p>Formulario profesional conectado al motor vigente de casas. Calcula, genera el informe PDF y guarda el expediente dentro de tu organización.</p></div>
+      <div className='terrain-hero-copy'>
+        <span className='terrain-kicker'>VALORACIÓN INMOBILIARIA · CASAS</span>
+        <h1>Analiza terreno, construcción y condición del inmueble en un mismo expediente.</h1>
+        <p>Registra ubicación, características constructivas, distribución, estado y extras. El motor vigente combina estos factores para producir una valoración coherente y documentada.</p>
+        <div className='terrain-hero-note'><i /> La metodología de cálculo permanece intacta; esta experiencia organiza mejor la inspección y el análisis.</div>
+      </div>
       <button type='button' className='terrain-reset' onClick={reset}><RotateCcw /> Nuevo avalúo</button>
     </header>
 
     <section className='terrain-status-grid'>
-      <div><Home /><span><small>Ciudad</small><strong>{form.ciudad}</strong></span></div>
-      <div><CheckCircle2 /><span><small>Zona</small><strong>{form.zona || 'Pendiente'}</strong></span></div>
-      <div><Calculator /><span><small>Campos con información</small><strong>{completed}</strong></span></div>
+      <div><Home /><span><small>Ubicación</small><strong>{form.ciudad}</strong></span></div>
+      <div><CheckCircle2 /><span><small>Zona seleccionada</small><strong>{form.zona || 'Pendiente'}</strong></span></div>
+      <div><Calculator /><span><small>Información registrada</small><strong>{completed} campos</strong></span></div>
     </section>
 
     <section className='terrain-form-shell'>
+      <div className='terrain-form-heading'><div><span>EXPEDIENTE TÉCNICO</span><h2>Información de la vivienda</h2><p>Completa los bloques de terreno, construcción, distribución, extras y documentación para obtener el resultado.</p></div><strong>01</strong></div>
       <CasaForm value={form} onChange={change} onSubmit={calculate} loading={loading} />
       {error && <div className='terrain-error' role='alert'>{error}</div>}
     </section>
 
     {result && <section id='resultado-casa' className='terrain-result'>
-      <div className='terrain-result-heading'><div><p>Resultado del motor vigente</p><h2>{form.titulo || 'Avalúo de casa'}</h2><span>{form.ciudad} · {form.zona}</span></div><div className='terrain-result-main'><small>Valor final estimado</small><strong>{usd(result.valorFinalEstimado)}</strong><span>Confianza: {result.nivelConfianza}</span></div></div>
+      <div className='terrain-result-heading'><div><p>RESULTADO DE VALORACIÓN</p><h2>{form.titulo || 'Avalúo de casa'}</h2><span>{form.ciudad} · {form.zona}</span></div><div className='terrain-result-main'><small>Valor final estimado</small><strong>{usd(result.valorFinalEstimado)}</strong><span>Confianza: {result.nivelConfianza}</span></div></div>
       <div className='terrain-metrics'>
         <Metric label='Valor del terreno' value={usd(result.valorTerreno)} />
         <Metric label='Valor construcción' value={usd(result.valorConstruccion)} />
