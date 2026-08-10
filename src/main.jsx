@@ -10,6 +10,7 @@ import './styles/persistence.css';
 import './styles/platformAdmin.css';
 import './styles/platformAdminManagement.css';
 import './styles/platformAdminFunctional.css';
+import './styles/accessLanding.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
