@@ -162,6 +162,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     const role = membership?.role;
     const license = tenant?.license || {};
     const branding = tenant?.branding || {};
+    const tenantId = String(tenant?.id || tenant?.slug || '').trim().toLowerCase();
     const expiresAt = timestampToDate(license.expiresAt);
     const licenseExpired = Boolean(expiresAt && expiresAt.getTime() < Date.now());
     const licenseStatus = String(license.status || tenant?.status || 'active');
@@ -176,6 +177,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       monthlyAvaluos: Math.max(1, Number(license.limits?.monthlyAvaluos || 200)),
     };
     const reportConfig = {
+      tenantId,
+      pdfTemplateId: branding.pdfTemplateId || tenant?.pdfTemplateId || (tenantId === 'amyblandon' ? 'amy-luxury-v1' : 'default-v1'),
       organizationName: branding.organizationName || tenant?.name || 'Avalúos Platform',
       shortName: branding.shortName || initials(tenant?.name || tenant?.slug || 'AP'),
       website: branding.website || tenant?.website || '',
