@@ -6,7 +6,7 @@ import { saveTenantAvaluo } from '../../../services/avaluosPersistence.service';
 
 export default function SaveAvaluoButton({ tipo, form, result }: { tipo: 'terreno' | 'casa'; form: any; result: any }) {
   const { user } = useAuth();
-  const { tenantId, canWrite } = useTenant();
+  const { tenantId, canWrite, reportConfig } = useTenant();
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState('');
   const [error, setError] = useState('');
@@ -18,7 +18,7 @@ export default function SaveAvaluoButton({ tipo, form, result }: { tipo: 'terren
     setSaving(true);
     setError('');
     try {
-      const id = await saveTenantAvaluo({ tenantId, user, tipo, form, result });
+      const id = await saveTenantAvaluo({ tenantId, user, tipo, form, result, reportConfig });
       setSavedId(id);
     } catch (cause) {
       console.error(cause);

@@ -12,6 +12,8 @@ type Membership = {
   displayName?: string;
 };
 
+type TenantFeature = 'terrenos' | 'casas' | 'pdf';
+
 type TenantContextValue = {
   tenantId: string | null;
   tenant: any | null;
@@ -20,6 +22,13 @@ type TenantContextValue = {
   error: string;
   canWrite: boolean;
   canAdmin: boolean;
+  licenseActive: boolean;
+  licenseExpired: boolean;
+  licenseStatus: string;
+  features: Record<TenantFeature, boolean>;
+  limits: { maxUsers: number; monthlyAvaluos: number };
+  reportConfig: any;
+  canUseFeature: (feature: TenantFeature) => boolean;
 };
 
 const TenantContext = createContext<TenantContextValue | null>(null);
@@ -71,6 +80,22 @@ async function resolveAssignedTenant(user: any) {
   return loadTenantForUser(user, DEFAULT_TENANT_ID);
 }
 
+function timestampToDate(value: any) {
+  if (!value) return null;
+  try {
+    if (typeof value?.toDate === 'function') return value.toDate();
+    if (value?.seconds) return new Date(value.seconds * 1000);
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  } catch {
+    return null;
+  }
+}
+
+function initials(value: string) {
+  return String(value || 'AP').split(/\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 3).toUpperCase();
+}
+
 export function TenantProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [tenant, setTenant] = useState<any | null>(null);
@@ -110,14 +135,47 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<TenantContextValue>(() => {
     const role = membership?.role;
+    const license = tenant?.license || {};
+    const branding = tenant?.branding || {};
+    const expiresAt = timestampToDate(license.expiresAt);
+    const licenseExpired = Boolean(expiresAt && expiresAt.getTime() < Date.now());
+    const licenseStatus = String(license.status || tenant?.status || 'active');
+    const licenseActive = Boolean(tenant && tenant.status !== 'suspended' && tenant.status !== 'expired' && licenseStatus === 'active' && !licenseExpired);
+    const features = {
+      terrenos: license.features?.terrenos !== false,
+      casas: license.features?.casas !== false,
+      pdf: license.features?.pdf !== false,
+    };
+    const limits = {
+      maxUsers: Math.max(1, Number(license.limits?.maxUsers || 10)),
+      monthlyAvaluos: Math.max(1, Number(license.limits?.monthlyAvaluos || 200)),
+    };
+    const reportConfig = {
+      organizationName: branding.organizationName || tenant?.name || 'Avalúos Platform',
+      shortName: branding.shortName || initials(tenant?.name || tenant?.slug || 'AP'),
+      website: branding.website || tenant?.website || '',
+      reportTitle: branding.reportTitle || 'Informe Técnico de Avalúo',
+      footerText: branding.footerText || 'Documento generado por Avalúos Platform.',
+      logoUrl: branding.logoUrl || '',
+      primaryColor: branding.primaryColor || '#ffffff',
+      secondaryColor: branding.secondaryColor || '#d4af37',
+    };
+
     return {
       tenantId: tenant?.id || null,
       tenant,
       membership,
       loading,
       error,
-      canWrite: ['owner', 'admin', 'valuer', 'agent'].includes(role || ''),
+      canWrite: licenseActive && ['owner', 'admin', 'valuer', 'agent'].includes(role || ''),
       canAdmin: ['owner', 'admin'].includes(role || ''),
+      licenseActive,
+      licenseExpired,
+      licenseStatus,
+      features,
+      limits,
+      reportConfig,
+      canUseFeature: (feature: TenantFeature) => licenseActive && features[feature],
     };
   }, [tenant, membership, loading, error]);
 

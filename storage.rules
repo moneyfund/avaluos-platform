@@ -5,6 +5,11 @@ service firebase.storage {
       return request.auth != null;
     }
 
+    function isPlatformAdmin() {
+      return signedIn()
+        && request.auth.token.email == 'norvingarcia220@gmail.com';
+    }
+
     function membershipPath(tenantId) {
       return /databases/(default)/documents/tenants/$(tenantId)/members/$(request.auth.uid);
     }
@@ -21,11 +26,19 @@ service firebase.storage {
     }
 
     match /tenants/{tenantId}/avaluos/{avaluoId}/{allPaths=**} {
-      allow read: if isActiveMember(tenantId);
+      allow read: if isPlatformAdmin() || isActiveMember(tenantId);
       allow create, update: if canWrite(tenantId)
         && request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/(jpeg|png|webp)');
-      allow delete: if canWrite(tenantId);
+      allow delete: if isPlatformAdmin() || canWrite(tenantId);
+    }
+
+    match /tenants/{tenantId}/branding/{allPaths=**} {
+      allow read: if isPlatformAdmin() || isActiveMember(tenantId);
+      allow create, update: if isPlatformAdmin()
+        && request.resource.size < 2 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+      allow delete: if isPlatformAdmin();
     }
 
     match /{allPaths=**} {

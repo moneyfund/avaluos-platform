@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { db, storage } from '../firebase/config';
 import { buildAvaluoRecord } from '../pdf/buildAvaluoRecord';
@@ -16,6 +16,52 @@ const cleanForFirestore = (value: any): any => {
   }
   return value;
 };
+
+function recordDate(row: any) {
+  if (row?.createdAt?.toDate instanceof Function) return row.createdAt.toDate();
+  if (row?.createdAt?.seconds) return new Date(row.createdAt.seconds * 1000);
+  if (row?.createdAtClient) return new Date(row.createdAtClient);
+  return null;
+}
+
+function timestampDate(value: any) {
+  if (!value) return null;
+  if (value?.toDate instanceof Function) return value.toDate();
+  if (value?.seconds) return new Date(value.seconds * 1000);
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+async function assertTenantCanCreateAvaluo(tenantId: string, tipo: string) {
+  if (!db) throw new Error('Firestore no está configurado.');
+  const tenantSnap = await getDoc(doc(db, 'tenants', tenantId));
+  if (!tenantSnap.exists()) throw new Error('La organización asignada ya no existe.');
+
+  const tenant = tenantSnap.data() as any;
+  const license = tenant.license || {};
+  const expiresAt = timestampDate(license.expiresAt);
+  if ((tenant.status && tenant.status !== 'active') || (license.status && license.status !== 'active') || (expiresAt && expiresAt.getTime() < Date.now())) {
+    throw new Error('La licencia de esta organización no está activa.');
+  }
+
+  const feature = tipo === 'casa' ? 'casas' : 'terrenos';
+  if (license.features?.[feature] === false) {
+    throw new Error(`El módulo ${feature === 'casas' ? 'Casas' : 'Terrenos'} no está habilitado en esta licencia.`);
+  }
+
+  const monthlyLimit = Math.max(1, Number(license.limits?.monthlyAvaluos || 200));
+  const snapshot = await getDocs(query(collection(db, 'avaluos'), where('tenantId', '==', tenantId)));
+  const now = new Date();
+  const currentMonthCount = snapshot.docs.reduce((count, item) => {
+    const date = recordDate(item.data());
+    if (!date || Number.isNaN(date.getTime())) return count;
+    return count + (date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() ? 1 : 0);
+  }, 0);
+
+  if (currentMonthCount >= monthlyLimit) {
+    throw new Error(`La organización alcanzó su límite mensual de ${monthlyLimit} avalúos. Actualiza la licencia para continuar.`);
+  }
+}
 
 async function uploadEvidence(tenantId: string, avaluoId: string, form: any) {
   if (!storage) throw new Error('Firebase Storage no está configurado.');
@@ -44,12 +90,14 @@ async function uploadEvidence(tenantId: string, avaluoId: string, form: any) {
   return uploaded;
 }
 
-export async function saveTenantAvaluo({ tenantId, user, tipo, form, result }: any) {
+export async function saveTenantAvaluo({ tenantId, user, tipo, form, result, reportConfig }: any) {
   if (!db || !storage) throw new Error('Firebase no está configurado completamente.');
   if (!tenantId || !user?.uid) throw new Error('No existe una organización o usuario válido.');
 
+  await assertTenantCanCreateAvaluo(tenantId, tipo);
+
   const avaluoRef = doc(collection(db, 'avaluos'));
-  const baseRecord = buildAvaluoRecord(tipo, form, result);
+  const baseRecord = buildAvaluoRecord(tipo, form, result, reportConfig);
   const sanitized = cleanForFirestore(baseRecord);
   delete sanitized.id;
   delete sanitized.imagenPrincipalFile;
