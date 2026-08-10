@@ -58,9 +58,24 @@ async function loadTenantForUser(user: any, tenantId: string) {
   return { tenant, membership };
 }
 
+function requestedTenantIdFromUrl() {
+  if (typeof window === 'undefined') return '';
+  const raw = new URLSearchParams(window.location.search).get('tenant') || '';
+  const tenantId = raw.trim().toLowerCase();
+  return /^[a-z0-9-]{2,80}$/.test(tenantId) ? tenantId : '';
+}
+
 async function resolveAssignedTenant(user: any) {
   if (!db) throw new Error('Firestore no está configurado.');
   await ensureUserProfile(user);
+
+  // Cuando una web cliente abre Avalúos Platform con ?tenant=slug,
+  // ese tenant se vuelve el destino explícito. Nunca se concede acceso
+  // por el parámetro: loadTenantForUser sigue exigiendo membresía activa.
+  const requestedTenantId = requestedTenantIdFromUrl();
+  if (requestedTenantId) {
+    return loadTenantForUser(user, requestedTenantId);
+  }
 
   const mappingSnap = await getDoc(doc(db, 'userTenants', user.uid));
   if (mappingSnap.exists()) {
@@ -118,7 +133,10 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       .then((resolved) => {
         if (!active) return;
         if (!resolved) {
-          setError('Esta cuenta todavía no tiene acceso a una organización activa. Inicia sesión una vez y solicita al administrador que te asigne una empresa.');
+          const requestedTenantId = requestedTenantIdFromUrl();
+          setError(requestedTenantId
+            ? `Esta cuenta todavía no tiene acceso activo a la organización “${requestedTenantId}”. Solicita al administrador de Avalúos Platform que te asigne a ese espacio.`
+            : 'Esta cuenta todavía no tiene acceso a una organización activa. Inicia sesión una vez y solicita al administrador que te asigne una empresa.');
           return;
         }
         setTenant(resolved.tenant);
