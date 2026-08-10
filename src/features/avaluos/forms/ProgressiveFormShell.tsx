@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 
 type Step = {
@@ -9,7 +10,7 @@ type Props = {
   steps: Step[];
   currentStep: number;
   onStepChange: (step: number) => void;
-  children: React.ReactNode;
+  children: ReactNode;
   onFinal: () => void;
   loading?: boolean;
   finalLabel: string;
