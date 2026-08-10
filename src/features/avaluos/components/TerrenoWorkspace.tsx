@@ -52,23 +52,29 @@ export default function TerrenoWorkspace() {
 
   return <main className='terrain-page'>
     <header className='terrain-hero'>
-      <div><p className='terrain-kicker'>Avalúos Platform · núcleo independiente</p><h1>Avalúo técnico de terreno</h1><p>Formulario profesional conectado al motor vigente. Calcula, genera el informe PDF y guarda el expediente dentro de tu organización.</p></div>
+      <div className='terrain-hero-copy'>
+        <span className='terrain-kicker'>VALORACIÓN INMOBILIARIA · TERRENOS</span>
+        <h1>Construye un avalúo técnico con una lectura clara del mercado.</h1>
+        <p>Completa el expediente por bloques. El motor conserva la metodología vigente y transforma la información registrada en un valor estimado, rango de mercado e informe profesional.</p>
+        <div className='terrain-hero-note'><i /> Los cambios del formulario recalculan únicamente este expediente; no modifican los precios maestros.</div>
+      </div>
       <button type='button' className='terrain-reset' onClick={reset}><RotateCcw /> Nuevo avalúo</button>
     </header>
 
     <section className='terrain-status-grid'>
-      <div><MapPinned /><span><small>Ciudad</small><strong>{form.ciudad}</strong></span></div>
-      <div><CheckCircle2 /><span><small>Zona</small><strong>{form.zona || 'Pendiente'}</strong></span></div>
-      <div><Calculator /><span><small>Campos con información</small><strong>{completed}</strong></span></div>
+      <div><MapPinned /><span><small>Ubicación</small><strong>{form.ciudad}</strong></span></div>
+      <div><CheckCircle2 /><span><small>Zona seleccionada</small><strong>{form.zona || 'Pendiente'}</strong></span></div>
+      <div><Calculator /><span><small>Información registrada</small><strong>{completed} campos</strong></span></div>
     </section>
 
     <section className='terrain-form-shell'>
+      <div className='terrain-form-heading'><div><span>EXPEDIENTE TÉCNICO</span><h2>Información del terreno</h2><p>Trabaja cada sección en orden o completa únicamente los factores disponibles durante la inspección.</p></div><strong>01</strong></div>
       <TerrenoForm value={form} onChange={change} onSubmit={calculate} loading={loading} />
       {error && <div className='terrain-error' role='alert'>{error}</div>}
     </section>
 
     {result && <section id='resultado-terreno' className='terrain-result'>
-      <div className='terrain-result-heading'><div><p>Resultado del motor vigente</p><h2>{form.titulo || 'Avalúo de terreno'}</h2><span>{form.ciudad} · {form.zona}</span></div><div className='terrain-result-main'><small>Valor final estimado</small><strong>{usd(result.valorFinalEstimado)}</strong><span>Confianza: {result.nivelConfianza}</span></div></div>
+      <div className='terrain-result-heading'><div><p>RESULTADO DE VALORACIÓN</p><h2>{form.titulo || 'Avalúo de terreno'}</h2><span>{form.ciudad} · {form.zona}</span></div><div className='terrain-result-main'><small>Valor final estimado</small><strong>{usd(result.valorFinalEstimado)}</strong><span>Confianza: {result.nivelConfianza}</span></div></div>
       <div className='terrain-metrics'>
         <Metric label='Rango mínimo' value={usd(result.rangoMercado?.minimo)} />
         <Metric label='Rango máximo' value={usd(result.rangoMercado?.maximo)} />
