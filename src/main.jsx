@@ -11,6 +11,7 @@ import './styles/platformAdmin.css';
 import './styles/platformAdminManagement.css';
 import './styles/platformAdminFunctional.css';
 import './styles/accessLanding.css';
+import './styles/clientWorkspacePremium.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
