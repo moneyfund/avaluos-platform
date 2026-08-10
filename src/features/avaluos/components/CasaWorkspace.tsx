@@ -24,6 +24,7 @@ export default function CasaWorkspace() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [formVersion, setFormVersion] = useState(0);
 
   const completed = useMemo(() => Object.values(form).filter((value) => value !== '' && value !== null && value !== false && value !== 0 && (!Array.isArray(value) || value.length)).length, [form]);
   const pdfAvaluo = useMemo(() => result ? buildAvaluoRecord('casa', form, result, reportConfig) : null, [form, result, reportConfig]);
@@ -50,14 +51,14 @@ export default function CasaWorkspace() {
     }
   };
 
-  const reset = () => { setForm(initialForm()); setResult(null); setError(''); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const reset = () => { setForm(initialForm()); setResult(null); setError(''); setFormVersion((value) => value + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   return <main className='terrain-page'>
     <header className='terrain-hero'>
       <div className='terrain-hero-copy'>
         <span className='terrain-kicker'>VALORACIÓN INMOBILIARIA · CASAS</span>
         <h1>Analiza terreno, construcción y condición del inmueble en un mismo expediente.</h1>
-        <p>Registra ubicación, características constructivas, distribución, estado y extras. El motor vigente combina estos factores para producir una valoración coherente y documentada.</p>
+        <p>Avanza por etapas para registrar ubicación, terreno, construcción, distribución, extras y documentación sin enfrentarte a un formulario interminable.</p>
         <div className='terrain-hero-note'><i /> La metodología de cálculo permanece intacta; esta experiencia organiza mejor la inspección y el análisis.</div>
       </div>
       <button type='button' className='terrain-reset' onClick={reset}><RotateCcw /> Nuevo avalúo</button>
@@ -70,8 +71,8 @@ export default function CasaWorkspace() {
     </section>
 
     <section className='terrain-form-shell'>
-      <div className='terrain-form-heading'><div><span>EXPEDIENTE TÉCNICO</span><h2>Información de la vivienda</h2><p>Completa los bloques de terreno, construcción, distribución, extras y documentación para obtener el resultado.</p></div><strong>01</strong></div>
-      <CasaForm value={form} onChange={change} onSubmit={calculate} loading={loading} />
+      <div className='terrain-form-heading'><div><span>EXPEDIENTE TÉCNICO</span><h2>Información de la vivienda</h2><p>Completa una etapa a la vez. Tus datos se conservan mientras avanzas o retrocedes.</p></div><strong>01</strong></div>
+      <CasaForm key={formVersion} value={form} onChange={change} onSubmit={calculate} loading={loading} />
       {error && <div className='terrain-error' role='alert'>{error}</div>}
     </section>
 

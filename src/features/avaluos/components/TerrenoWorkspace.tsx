@@ -24,6 +24,7 @@ export default function TerrenoWorkspace() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [formVersion, setFormVersion] = useState(0);
 
   const completed = useMemo(() => Object.values(form).filter((value) => value !== '' && value !== null && value !== false && value !== 0 && (!Array.isArray(value) || value.length)).length, [form]);
   const pdfAvaluo = useMemo(() => result ? buildAvaluoRecord('terreno', form, result, reportConfig) : null, [form, result, reportConfig]);
@@ -48,14 +49,14 @@ export default function TerrenoWorkspace() {
     }
   };
 
-  const reset = () => { setForm(initialForm()); setResult(null); setError(''); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const reset = () => { setForm(initialForm()); setResult(null); setError(''); setFormVersion((value) => value + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   return <main className='terrain-page'>
     <header className='terrain-hero'>
       <div className='terrain-hero-copy'>
         <span className='terrain-kicker'>VALORACIÓN INMOBILIARIA · TERRENOS</span>
         <h1>Construye un avalúo técnico con una lectura clara del mercado.</h1>
-        <p>Completa el expediente por bloques. El motor conserva la metodología vigente y transforma la información registrada en un valor estimado, rango de mercado e informe profesional.</p>
+        <p>Completa el expediente por etapas. El motor conserva la metodología vigente y transforma la información registrada en un valor estimado, rango de mercado e informe profesional.</p>
         <div className='terrain-hero-note'><i /> Los cambios del formulario recalculan únicamente este expediente; no modifican los precios maestros.</div>
       </div>
       <button type='button' className='terrain-reset' onClick={reset}><RotateCcw /> Nuevo avalúo</button>
@@ -68,8 +69,8 @@ export default function TerrenoWorkspace() {
     </section>
 
     <section className='terrain-form-shell'>
-      <div className='terrain-form-heading'><div><span>EXPEDIENTE TÉCNICO</span><h2>Información del terreno</h2><p>Trabaja cada sección en orden o completa únicamente los factores disponibles durante la inspección.</p></div><strong>01</strong></div>
-      <TerrenoForm value={form} onChange={change} onSubmit={calculate} loading={loading} />
+      <div className='terrain-form-heading'><div><span>EXPEDIENTE TÉCNICO</span><h2>Información del terreno</h2><p>Avanza paso a paso; cada etapa mantiene tus datos mientras continúas.</p></div><strong>01</strong></div>
+      <TerrenoForm key={formVersion} value={form} onChange={change} onSubmit={calculate} loading={loading} />
       {error && <div className='terrain-error' role='alert'>{error}</div>}
     </section>
 
