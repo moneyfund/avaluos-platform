@@ -1,0 +1,3 @@
+Redeploy trigger for Amy PDF rendering update.
+Requested: 2026-08-10 America/Managua.
+No application logic changed.
