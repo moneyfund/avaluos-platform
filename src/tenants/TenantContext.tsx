@@ -178,7 +178,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     };
     const reportConfig = {
       tenantId,
-      pdfTemplateId: branding.pdfTemplateId || tenant?.pdfTemplateId || (tenantId === 'amyblandon' ? 'amy-luxury-v1' : 'default-v1'),
+      pdfTemplateId: branding.pdfTemplateId || tenant?.pdfTemplateId || (tenantId === 'amyblandon' ? 'amy-luxury-v2' : 'default-v1'),
       organizationName: branding.organizationName || tenant?.name || 'Avalúos Platform',
       shortName: branding.shortName || initials(tenant?.name || tenant?.slug || 'AP'),
       website: branding.website || tenant?.website || '',
