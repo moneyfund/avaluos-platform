@@ -4,6 +4,7 @@ import jsPDF from 'jspdf';
 import AvaluoPdfTemplate from './AvaluoPdfTemplate';
 import HouseReportPDF from './HouseReportPDF';
 import AmyLuxuryReport from './templates/amy/AmyLuxuryReport';
+import AmyLuxuryReportV2 from './templates/amy/AmyLuxuryReportV2';
 
 const IMAGE_TIMEOUT_MS = 8000;
 const HTML2CANVAS_TIMEOUT_MS = 30000;
@@ -84,7 +85,7 @@ const prepareAvaluoImages = async (avaluo: any) => {
     } : avaluo?.reportConfig,
     imagenPrincipalBase64: await prepareImage(avaluo?.imagenPrincipalFile, avaluo?.imagenPrincipalUrl || avaluo?.imagenPrincipal),
     imagenesAdicionalesBase64: await Promise.all(
-      (localGallery.length ? localGallery.slice(0, 5).map((file: File) => prepareImage(file)) : remoteGallery.slice(0, 5).map((url: string) => prepareImage(null, url))),
+      (localGallery.length ? localGallery.slice(0, 8).map((file: File) => prepareImage(file)) : remoteGallery.slice(0, 8).map((url: string) => prepareImage(null, url))),
     ),
   };
 };
@@ -103,7 +104,7 @@ const resolvePdfTemplateId = (avaluo: any) => {
   const explicit = String(avaluo?.reportConfig?.pdfTemplateId || avaluo?.pdfTemplateId || '').trim();
   if (explicit) return explicit;
   const tenantId = String(avaluo?.tenantId || avaluo?.reportConfig?.tenantId || '').trim().toLowerCase();
-  return tenantId === 'amyblandon' ? 'amy-luxury-v1' : 'default-v1';
+  return tenantId === 'amyblandon' ? 'amy-luxury-v2' : 'default-v1';
 };
 
 export async function exportAvaluoToPdf(avaluo: any) {
@@ -120,7 +121,9 @@ export async function exportAvaluoToPdf(avaluo: any) {
   try {
     const prepared = await prepareAvaluoImages(avaluo);
     const templateId = resolvePdfTemplateId(prepared);
-    if (templateId === 'amy-luxury-v1') {
+    if (templateId === 'amy-luxury-v2') {
+      root.render(<AmyLuxuryReportV2 avaluo={prepared} />);
+    } else if (templateId === 'amy-luxury-v1') {
       root.render(<AmyLuxuryReport avaluo={prepared} />);
     } else {
       root.render(prepared?.tipoPropiedad === 'casa' ? <HouseReportPDF avaluo={prepared} /> : <AvaluoPdfTemplate avaluo={prepared} />);
@@ -150,7 +153,7 @@ export async function exportAvaluoToPdf(avaluo: any) {
       if (index > 0) pdf.addPage();
       pdf.addImage(image, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
     }
-    const company = templateId === 'amy-luxury-v1' ? 'Amy-Blandon' : 'Avaluo';
+    const company = templateId.startsWith('amy-luxury') ? 'Amy-Blandon' : 'Avaluo';
     pdf.save(`Informe-${company}-${slug(prepared?.titulo || prepared?.id)}.pdf`);
   } finally {
     root.unmount();
