@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Avalúos Platform</title>
+  <desc id="desc">Monograma geométrico A inspirado en valoración, arquitectura y precisión.</desc>
+  <defs>
+    <linearGradient id="g" x1="42" y1="32" x2="214" y2="226" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D9C48B"/>
+      <stop offset="1" stop-color="#9E7A35"/>
+    </linearGradient>
+    <linearGradient id="n" x1="68" y1="44" x2="184" y2="212" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173650"/>
+      <stop offset="1" stop-color="#071827"/>
+    </linearGradient>
+  </defs>
+  <path d="M128 16 219 68v120l-91 52-91-52V68l91-52Z" fill="#071827"/>
+  <path d="M128 27 209 73v110l-81 46-81-46V73l81-46Z" fill="none" stroke="url(#g)" stroke-width="3"/>
+  <path d="M79 182 121 70c2-6 6-9 11-9s9 3 11 9l40 112h-25l-9-27H105l-9 27H79Zm34-51h29l-14-43-15 43Z" fill="url(#g)"/>
+  <path d="M93 153h70" stroke="#F6F8FA" stroke-width="5" stroke-linecap="round" opacity=".95"/>
+  <path d="M185 82v72" stroke="#2BA7A0" stroke-width="5" stroke-linecap="round"/>
+  <path d="M177 96h16M177 120h16M177 144h16" stroke="#2BA7A0" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="185" cy="72" r="5" fill="#2BA7A0"/>
+</svg>
