@@ -13,6 +13,7 @@ import './styles/platformAdminFunctional.css';
 import './styles/accessLanding.css';
 import './styles/clientWorkspacePremium.css';
 import './styles/workspaceEnhancements.css';
+import './styles/platformAdminInternational.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
