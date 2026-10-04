@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import {
   Activity,
@@ -106,7 +106,7 @@ function PageHeader({ eyebrow, title, description, actions }: {
   eyebrow: string;
   title: string;
   description: string;
-  actions?: React.ReactNode;
+  actions?: ReactNode;
 }) {
   return <div className='platform-page-header'>
     <div>
