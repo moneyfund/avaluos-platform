@@ -82,11 +82,8 @@ function recordDate(row: any) {
 
 function PlatformBrand({ compact = false }: { compact?: boolean }) {
   return <div className={`platform-v2-brand ${compact ? 'is-compact' : ''}`}>
-    <img src='/avaluos-platform-mark.svg' alt='Avalúos Platform' />
-    {!compact && <div>
-      <strong>Avalúos Platform</strong>
-      <small>Valuation Intelligence Suite</small>
-    </div>}
+    <img className='platform-v2-wordmark' src='/avalnic-logo.svg' alt='AVALNIC' />
+    <img className='platform-v2-mark' src='/avalnic-favicon.svg' alt='' aria-hidden='true' />
   </div>;
 }
 
@@ -550,7 +547,7 @@ export default function PlatformAdminPage() {
 
     <main className='platform-main'>
       <header className='platform-topbar'>
-        <div><span>Avalúos Platform / Administración</span><strong>{routeName}</strong></div>
+        <div><span>AVALNIC / Administración</span><strong>{routeName}</strong></div>
         <div className='platform-topbar-actions'>
           <div className='platform-live'><i /> {error ? 'Revisar conexión' : loading ? 'Sincronizando' : 'Sistema operativo'}</div>
           <button type='button' className='platform-topbar-create' onClick={() => setModalOpen(true)}><Plus /> Nueva organización</button>

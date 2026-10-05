@@ -31,27 +31,26 @@
 .platform-v2-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 2px 8px 24px;
+  justify-content: center;
+  min-height: 86px;
+  margin: 0 2px 18px;
+  padding: 12px 15px;
+  border: 1px solid rgba(224, 201, 148, .24);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(255,255,255,.985), rgba(248,246,240,.955));
+  box-shadow: 0 14px 34px rgba(0,0,0,.14);
 }
-.platform-v2-brand img {
-  width: 43px;
-  height: 43px;
-  flex: 0 0 43px;
-  filter: drop-shadow(0 8px 16px rgba(0,0,0,.2));
+.platform-v2-wordmark {
+  width: min(190px, 100%);
+  height: auto;
+  display: block;
+  filter: none;
 }
-.platform-v2-brand div { min-width: 0; display: grid; gap: 3px; }
-.platform-v2-brand strong {
-  color: #fff;
-  font-size: .96rem;
-  letter-spacing: -.02em;
-}
-.platform-v2-brand small {
-  color: #8196a8;
-  font-size: .58rem;
-  font-weight: 800;
-  letter-spacing: .12em;
-  text-transform: uppercase;
+.platform-v2-mark {
+  display: none;
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
 }
 
 .platform-admin-v2 .platform-central-card {
@@ -569,7 +568,14 @@
 @media (max-width: 920px) {
   .platform-admin-v2 { grid-template-columns: 82px minmax(0,1fr); }
   .platform-admin-v2 .platform-sidebar { padding-inline: 12px; }
-  .platform-v2-brand { justify-content: center; padding-inline: 0; }
+  .platform-v2-brand {
+    min-height: 58px;
+    margin-inline: 0;
+    padding: 7px;
+    border-radius: 13px;
+  }
+  .platform-v2-wordmark { display: none; }
+  .platform-v2-mark { display: block; }
   .platform-v2-brand div,
   .platform-admin-v2 .platform-central-card span,
   .platform-admin-v2 .platform-sidebar nav a span,

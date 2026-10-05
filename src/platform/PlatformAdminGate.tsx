@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LogIn, ShieldAlert } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { isRootPlatformAdmin } from './platformAdminAccess';
 
@@ -26,9 +26,9 @@ export default function PlatformAdminGate({ children }: { children: React.ReactN
 
   return <main className='platform-denied platform-admin-login-gate'>
     <div className='platform-admin-login-card'>
-      <span className='platform-admin-login-icon'><ShieldAlert /></span>
+      <span className='platform-admin-login-icon platform-admin-login-brand'><img src='/avalnic-favicon.svg' alt='AVALNIC' /></span>
       <p>ADMINISTRACIÓN CENTRAL</p>
-      <h1>Accede con tu cuenta de Platform Admin.</h1>
+      <h1>Accede al Control Center de AVALNIC.</h1>
       <small>
         {user
           ? <>La sesión activa es <strong>{user.email || 'otra cuenta de Google'}</strong>. Esa sesión se cerrará antes de abrir el acceso de administrador.</>
@@ -37,7 +37,7 @@ export default function PlatformAdminGate({ children }: { children: React.ReactN
       <button type='button' className='platform-admin-switch-account' onClick={switchToAdmin} disabled={switching}>
         <LogIn /> {switching ? 'Cambiando sesión…' : 'Cambiar a cuenta de administrador'}
       </button>
-      <a href='/'>Volver al portal de Avalúos Platform</a>
+      <a href='/'>Volver al portal de AVALNIC</a>
       {error && <div className='platform-admin-login-error' role='alert'>{error}</div>}
     </div>
   </main>;
