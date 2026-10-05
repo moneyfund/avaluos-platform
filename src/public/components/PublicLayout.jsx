@@ -37,6 +37,23 @@ export function usePageMeta(title, description) {
       document.head.appendChild(ogDescription);
     }
     ogDescription.setAttribute('content', description);
+
+    const canonicalUrl = `https://avaluos-platform.vercel.app${window.location.pathname === '/' ? '/' : window.location.pathname}`;
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', canonicalUrl);
+
+    let ogUrl = document.querySelector('meta[property="og:url"]');
+    if (!ogUrl) {
+      ogUrl = document.createElement('meta');
+      ogUrl.setAttribute('property', 'og:url');
+      document.head.appendChild(ogUrl);
+    }
+    ogUrl.setAttribute('content', canonicalUrl);
   }, [title, description]);
 }
 
