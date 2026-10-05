@@ -67,6 +67,23 @@ function AppWorkspace() {
     '--client-ink': activeTheme.textColor || '#1d2430',
   };
 
+  const pathname = location.pathname.replace(/\/+$/, '') || '/';
+  let workspaceContent;
+
+  if (pathname === '/avaluos') {
+    workspaceContent = <Navigate to={defaultRoute} replace />;
+  } else if (pathname === '/avaluos/terrenos') {
+    workspaceContent = features.terrenos ? <TerrenoWorkspace /> : <DisabledFeature label='Terrenos' />;
+  } else if (pathname === '/avaluos/casas') {
+    workspaceContent = features.casas ? <CasaWorkspace /> : <DisabledFeature label='Casas' />;
+  } else if (pathname === '/historial') {
+    workspaceContent = <HistoryPage />;
+  } else if (pathname === '/personalizacion') {
+    workspaceContent = <PersonalizationPage canEdit={canPersonalize} />;
+  } else {
+    workspaceContent = <Navigate to={defaultRoute} replace />;
+  }
+
   return (
     <div className={`avaluos-app client-workspace${isAmy ? ' is-amy-tenant' : ''}`} style={workspaceStyle}>
       <aside className='client-sidebar'>
@@ -114,14 +131,7 @@ function AppWorkspace() {
         </header>
 
         <div className='client-page-stage'>
-          <Routes>
-            <Route path='/avaluos' element={<Navigate to={defaultRoute} replace />} />
-            <Route path='/avaluos/terrenos' element={features.terrenos ? <TerrenoWorkspace /> : <DisabledFeature label='Terrenos' />} />
-            <Route path='/avaluos/casas' element={features.casas ? <CasaWorkspace /> : <DisabledFeature label='Casas' />} />
-            <Route path='/historial' element={<HistoryPage />} />
-            <Route path='/personalizacion' element={<PersonalizationPage canEdit={canPersonalize} />} />
-            <Route path='*' element={<Navigate to={defaultRoute} replace />} />
-          </Routes>
+          {workspaceContent}
         </div>
       </section>
     </div>
