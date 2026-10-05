@@ -26,14 +26,26 @@ function DisabledFeature({ label }) {
 
 function AppWorkspace() {
   const { user, signOutUser } = useAuth();
-  const { tenant, membership, features, canAdmin } = useTenant();
+  const { tenant, tenantId, membership, features, canAdmin } = useTenant();
   const location = useLocation();
   const platformAdmin = isRootPlatformAdmin(user);
   const canPersonalize = canAdmin || platformAdmin;
   const defaultRoute = features.terrenos ? '/avaluos/terrenos' : features.casas ? '/avaluos/casas' : '/historial';
   const branding = tenant?.branding || {};
   const portalTheme = branding.portalTheme || {};
-  const accent = portalTheme.accentColor || branding.secondaryColor || '#c8a85b';
+  const isAmy = tenantId === 'amyblandon';
+  const amyAdminTheme = {
+    accentColor: '#2ba7a0',
+    pageBackground: '#f4f7f9',
+    sidebarBackground: '#071827',
+    topbarBackground: '#f8fafb',
+    cardBackground: '#ffffff',
+    navActiveBackground: '#e9f6f5',
+    textColor: '#14212e',
+  };
+  const activeTheme = isAmy ? amyAdminTheme : portalTheme;
+  const accent = activeTheme.accentColor || branding.secondaryColor || '#c8a85b';
+  const tenantLogo = isAmy ? '/amy-blandon-logo.svg' : branding.logoUrl;
   const initials = String(branding.shortName || tenant?.name || 'AP').split(/\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 3).toUpperCase();
   const currentSection = location.pathname.includes('/casas')
     ? 'Avalúo de casa'
@@ -44,19 +56,19 @@ function AppWorkspace() {
         : 'Avalúo de terreno';
   const workspaceStyle = {
     '--client-accent': accent,
-    '--client-page-bg': portalTheme.pageBackground || '#f5f4f0',
-    '--client-sidebar-bg': portalTheme.sidebarBackground || '#ffffff',
-    '--client-topbar-bg': portalTheme.topbarBackground || '#faf9f6',
-    '--client-card-bg': portalTheme.cardBackground || '#ffffff',
-    '--client-nav-active-bg': portalTheme.navActiveBackground || '#fff9eb',
-    '--client-ink': portalTheme.textColor || '#1d2430',
+    '--client-page-bg': activeTheme.pageBackground || '#f5f4f0',
+    '--client-sidebar-bg': activeTheme.sidebarBackground || '#ffffff',
+    '--client-topbar-bg': activeTheme.topbarBackground || '#faf9f6',
+    '--client-card-bg': activeTheme.cardBackground || '#ffffff',
+    '--client-nav-active-bg': activeTheme.navActiveBackground || '#fff9eb',
+    '--client-ink': activeTheme.textColor || '#1d2430',
   };
 
   return (
-    <div className='avaluos-app client-workspace' style={workspaceStyle}>
+    <div className={`avaluos-app client-workspace${isAmy ? ' is-amy-tenant' : ''}`} style={workspaceStyle}>
       <aside className='client-sidebar'>
         <div className='client-brand'>
-          <div className='client-brand-mark'>{branding.logoUrl ? <img src={branding.logoUrl} alt={`Logo ${tenant?.name || 'organización'}`} /> : <span>{initials}</span>}</div>
+          <div className='client-brand-mark'>{tenantLogo ? <img src={tenantLogo} alt={`Logo ${tenant?.name || 'organización'}`} /> : <span>{initials}</span>}</div>
           <div><strong>{tenant?.name || 'Avalúos Platform'}</strong><small>Workspace de valoración</small></div>
         </div>
 

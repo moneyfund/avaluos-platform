@@ -15,6 +15,7 @@ export default function AccessLanding() {
   const { user, loading, configured, error, signInGoogle, signOutUser } = useAuth();
   const [busy, setBusy] = useState(false);
   const target = useMemo(currentTarget, []);
+  const isAmy = target.tenantId === 'amyblandon';
 
   const enterWorkspace = () => {
     window.location.assign(`/avaluos${target.search}`);
@@ -35,7 +36,7 @@ export default function AccessLanding() {
   };
 
   if (!configured) {
-    return <main className='access-landing'>
+    return <main className={`access-landing${isAmy ? ' access-landing-amy' : ''}`}>
       <section className='access-landing-card'>
         <img className='access-config-logo' src='/avalnic-logo.svg' alt='AVALNIC' />
         <p className='access-kicker'>CONFIGURACIÓN PENDIENTE</p>
@@ -46,7 +47,7 @@ export default function AccessLanding() {
   }
 
   if (loading) {
-    return <main className='access-landing'>
+    return <main className={`access-landing${isAmy ? ' access-landing-amy' : ''}`}>
       <section className='access-landing-card access-loading-card'>
         <div className='access-spinner' />
         <p>Preparando acceso seguro…</p>
@@ -54,27 +55,30 @@ export default function AccessLanding() {
     </main>;
   }
 
-  return <main className='access-landing'>
+  return <main className={`access-landing${isAmy ? ' access-landing-amy' : ''}`}>
     <div className='access-ambient access-ambient-one' />
     <div className='access-ambient access-ambient-two' />
 
     <section className='access-landing-card'>
-      <header className='access-brand access-brand-avalnic'>
+      {isAmy ? <header className='access-brand access-brand-amy'>
+        <img className='access-amy-logo' src='/amy-blandon-logo.svg' alt='Amy Blandón' />
+        <span>Plataforma profesional de avalúos</span>
+      </header> : <header className='access-brand access-brand-avalnic'>
         <img className='access-avalnic-logo' src='/avalnic-logo.svg' alt='AVALNIC' />
         <span>Professional Valuation Suite</span>
-      </header>
+      </header>}
 
       <div className='access-intro'>
         <p className='access-kicker'>ACCESO SEGURO</p>
-        <h1>Elige cómo quieres ingresar.</h1>
-        <p className='access-copy'>La plataforma no cargará ninguna organización hasta que confirmes la cuenta que deseas utilizar.</p>
+        <h1>{isAmy ? 'Tu espacio de avalúos, listo para trabajar.' : 'Elige cómo quieres ingresar.'}</h1>
+        <p className='access-copy'>{isAmy ? 'Ingresá con tu cuenta autorizada para valorar propiedades, guardar expedientes y generar informes desde un solo lugar.' : 'La plataforma no cargará ninguna organización hasta que confirmes la cuenta que deseas utilizar.'}</p>
       </div>
 
       {target.tenantId && <div className='access-target'>
         <Building2 />
         <span>
           <small>Organización solicitada</small>
-          <strong>{target.tenantId}</strong>
+          <strong>{isAmy ? 'Amy Blandón' : target.tenantId}</strong>
         </span>
       </div>}
 

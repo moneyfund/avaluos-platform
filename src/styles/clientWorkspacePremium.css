@@ -316,3 +316,243 @@
   .client-workspace .history-hero { align-items: flex-start; }
   .client-workspace .history-filter-tabs button { flex: 1; justify-content: center; }
 }
+
+
+/* Amy Blandón tenant — admin-inspired navy / teal / gold identity */
+.client-workspace.is-amy-tenant {
+  --client-gold: #2ba7a0;
+  --client-gold-deep: #c6a15b;
+  --client-line: #dce5eb;
+  --client-muted: #6c7a87;
+  --client-soft: #f4f7f9;
+  --client-paper: #ffffff;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(43,167,160,.07), transparent 24%),
+    linear-gradient(180deg, #f8fafb 0%, #f4f7f9 100%);
+  color: #14212e;
+}
+
+.client-workspace.is-amy-tenant .client-sidebar {
+  border-right-color: rgba(255,255,255,.07);
+  background:
+    radial-gradient(circle at 22% 5%, rgba(43,167,160,.13), transparent 23%),
+    linear-gradient(180deg, #0a2031 0%, #071827 58%, #06131f 100%);
+  box-shadow: 18px 0 54px rgba(7,24,39,.12);
+}
+
+.client-workspace.is-amy-tenant .client-brand {
+  display: block;
+  padding: 0 2px;
+}
+
+.client-workspace.is-amy-tenant .client-brand-mark {
+  width: 100%;
+  height: 84px;
+  padding: 13px 14px;
+  border-color: rgba(198,161,91,.24);
+  border-radius: 16px;
+  background: rgba(4,21,34,.7);
+  box-shadow: inset 0 1px rgba(255,255,255,.03), 0 14px 34px rgba(0,0,0,.14);
+}
+
+.client-workspace.is-amy-tenant .client-brand-mark img {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  object-fit: contain;
+}
+
+.client-workspace.is-amy-tenant .client-brand > div:last-child { display: none; }
+
+.client-workspace.is-amy-tenant .client-sidebar-intro {
+  border-color: rgba(198,161,91,.2);
+  background: linear-gradient(135deg, rgba(198,161,91,.12), rgba(255,255,255,.035));
+}
+
+.client-workspace.is-amy-tenant .client-sidebar-intro span { color: #e4c77f; }
+.client-workspace.is-amy-tenant .client-sidebar-intro p { color: #7f94a5; }
+.client-workspace.is-amy-tenant .client-nav > small { color: #587084; }
+
+.client-workspace.is-amy-tenant .client-nav a {
+  color: #9eafbd;
+  border-radius: 11px;
+}
+
+.client-workspace.is-amy-tenant .client-nav a > svg { color: #688196; }
+.client-workspace.is-amy-tenant .client-nav a strong { color: #b9c7d1; }
+.client-workspace.is-amy-tenant .client-nav a em { color: #667f92; }
+
+.client-workspace.is-amy-tenant .client-nav a:hover {
+  transform: none;
+  border-color: rgba(255,255,255,.06);
+  background: rgba(255,255,255,.045);
+  box-shadow: none;
+}
+.client-workspace.is-amy-tenant .client-nav a:hover strong { color: #fff; }
+
+.client-workspace.is-amy-tenant .client-nav a.is-active {
+  border-color: rgba(43,167,160,.28);
+  background: linear-gradient(90deg, rgba(43,167,160,.17), rgba(43,167,160,.055));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.015), 0 10px 28px rgba(0,0,0,.08);
+}
+.client-workspace.is-amy-tenant .client-nav a.is-active::before {
+  left: -20px;
+  width: 3px;
+  background: #43bbb4;
+  box-shadow: 0 0 16px rgba(43,167,160,.42);
+}
+.client-workspace.is-amy-tenant .client-nav a.is-active > svg { color: #57c8c1; }
+.client-workspace.is-amy-tenant .client-nav a.is-active strong { color: #fff; }
+
+.client-workspace.is-amy-tenant .client-platform-link,
+.client-workspace.is-amy-tenant .client-user-card {
+  border-color: rgba(255,255,255,.08);
+  background: rgba(255,255,255,.045);
+  box-shadow: none;
+}
+.client-workspace.is-amy-tenant .client-platform-link { color: #8ea3b3; }
+.client-workspace.is-amy-tenant .client-platform-link svg { color: #c6a15b; }
+.client-workspace.is-amy-tenant .client-user-card strong { color: #eaf0f4; }
+.client-workspace.is-amy-tenant .client-user-card small { color: #72889a; }
+.client-workspace.is-amy-tenant .client-user-avatar {
+  background: rgba(43,167,160,.14);
+  color: #70d0ca;
+}
+.client-workspace.is-amy-tenant .client-user-card button {
+  background: rgba(255,255,255,.05);
+  color: #8195a5;
+}
+
+.client-workspace.is-amy-tenant .client-main { background: #f4f7f9; }
+.client-workspace.is-amy-tenant .client-topbar {
+  border-bottom-color: #e2e9ee;
+  background: rgba(248,250,251,.92);
+  box-shadow: 0 6px 22px rgba(24,47,66,.025);
+}
+.client-workspace.is-amy-tenant .client-breadcrumb small { color: #8795a1; }
+.client-workspace.is-amy-tenant .client-breadcrumb strong { color: #1d2b37; }
+.client-workspace.is-amy-tenant .client-status-pill {
+  border-color: #cee9e6;
+  background: #f2fbfa;
+  color: #4c7976;
+}
+.client-workspace.is-amy-tenant .client-status-pill i {
+  background: #2ba7a0;
+  box-shadow: 0 0 0 4px rgba(43,167,160,.09);
+}
+.client-workspace.is-amy-tenant .client-top-user { border-left-color: #e2e9ee; }
+.client-workspace.is-amy-tenant .client-top-user strong { color: #2d4351; }
+.client-workspace.is-amy-tenant .client-top-user small { color: #84929d; }
+
+.client-workspace.is-amy-tenant .terrain-page,
+.client-workspace.is-amy-tenant .history-page,
+.client-workspace.is-amy-tenant .personalization-page {
+  background:
+    radial-gradient(circle at 90% 0%, rgba(43,167,160,.065), transparent 23%),
+    linear-gradient(180deg, #f8fafb 0%, #f4f7f9 100%);
+}
+
+.client-workspace.is-amy-tenant .terrain-kicker,
+.client-workspace.is-amy-tenant .terrain-form-heading span,
+.client-workspace.is-amy-tenant .terrain-result-heading p,
+.client-workspace.is-amy-tenant .history-hero p,
+.client-workspace.is-amy-tenant .avaluo-card-title p {
+  color: #278d87;
+}
+
+.client-workspace.is-amy-tenant .terrain-hero h1,
+.client-workspace.is-amy-tenant .terrain-form-heading h2,
+.client-workspace.is-amy-tenant .terrain-result-heading h2,
+.client-workspace.is-amy-tenant .history-hero h1,
+.client-workspace.is-amy-tenant .avaluo-card-title h2 {
+  color: #132535;
+}
+
+.client-workspace.is-amy-tenant .terrain-status-grid > div,
+.client-workspace.is-amy-tenant .terrain-form-shell,
+.client-workspace.is-amy-tenant .terrain-result,
+.client-workspace.is-amy-tenant .history-card,
+.client-workspace.is-amy-tenant .personalization-panel {
+  border-color: #dfe7ec;
+  background: rgba(255,255,255,.97);
+  box-shadow: 0 14px 34px rgba(20,43,61,.05);
+}
+
+.client-workspace.is-amy-tenant .terrain-status-grid svg,
+.client-workspace.is-amy-tenant .avaluo-dropzone svg,
+.client-workspace.is-amy-tenant .history-empty svg {
+  color: #2b918b;
+}
+
+.client-workspace.is-amy-tenant .terrain-form-shell input,
+.client-workspace.is-amy-tenant .terrain-form-shell select,
+.client-workspace.is-amy-tenant .terrain-form-shell textarea,
+.client-workspace.is-amy-tenant .avaluo-report-grid input {
+  border-color: #d8e3e8 !important;
+  background: #f8fafb !important;
+  color: #263b49 !important;
+}
+.client-workspace.is-amy-tenant .terrain-form-shell input:focus,
+.client-workspace.is-amy-tenant .terrain-form-shell select:focus,
+.client-workspace.is-amy-tenant .terrain-form-shell textarea:focus,
+.client-workspace.is-amy-tenant .avaluo-report-grid input:focus {
+  border-color: #78bbb7 !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 3px rgba(43,167,160,.08) !important;
+}
+
+.client-workspace.is-amy-tenant .terrain-form-shell button.bg-amber-500,
+.client-workspace.is-amy-tenant .avaluo-save-button {
+  border-color: #173650 !important;
+  background: linear-gradient(135deg, #173650 0%, #071827 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 11px 24px rgba(7,24,39,.15) !important;
+}
+.client-workspace.is-amy-tenant .terrain-form-shell button.bg-amber-500:hover,
+.client-workspace.is-amy-tenant .avaluo-save-button:hover {
+  box-shadow: 0 16px 32px rgba(7,24,39,.2) !important;
+}
+
+.client-workspace.is-amy-tenant .terrain-result-heading {
+  border-bottom-color: #e2e9ee;
+  background: linear-gradient(135deg, #ffffff 0%, #f5f9fa 100%);
+}
+.client-workspace.is-amy-tenant .terrain-result-main {
+  border-color: #e3d3ae;
+  background: #fbf6e9;
+}
+.client-workspace.is-amy-tenant .terrain-result-main strong,
+.client-workspace.is-amy-tenant .history-value strong,
+.client-workspace.is-amy-tenant .terrain-coefficients summary span {
+  color: #9a783b;
+}
+.client-workspace.is-amy-tenant .terrain-metrics { background: #e3eaee; }
+.client-workspace.is-amy-tenant .terrain-metrics article { background: #fff; }
+.client-workspace.is-amy-tenant .history-filter-tabs button.is-active {
+  background: #effafa;
+  color: #237b76;
+}
+
+@media (max-width: 820px) {
+  .client-workspace.is-amy-tenant .client-sidebar {
+    border-bottom-color: rgba(255,255,255,.08);
+    background: linear-gradient(90deg, #0a2031, #071827);
+  }
+  .client-workspace.is-amy-tenant .client-brand {
+    width: min(210px, calc(100vw - 72px));
+  }
+  .client-workspace.is-amy-tenant .client-brand-mark {
+    width: 100%;
+    height: 48px;
+    padding: 7px 9px;
+    border-radius: 12px;
+  }
+  .client-workspace.is-amy-tenant .client-nav a {
+    border-color: rgba(255,255,255,.08);
+    background: rgba(255,255,255,.04);
+  }
+  .client-workspace.is-amy-tenant .client-user-card button {
+    border-color: rgba(255,255,255,.08);
+    background: rgba(255,255,255,.05);
+  }
+}
