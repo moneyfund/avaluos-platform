@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /platform-admin/
+Disallow: /avaluos/
+Disallow: /historial
+Disallow: /personalizacion
+
+Sitemap: https://avaluos-platform.vercel.app/sitemap.xml
