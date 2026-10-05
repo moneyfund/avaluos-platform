@@ -132,7 +132,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         if (!resolved) {
           const requestedTenantId = requestedTenantIdFromUrl();
           setError(requestedTenantId
-            ? `Esta cuenta todavía no tiene acceso activo a la organización “${requestedTenantId}”. Solicita al administrador de Avalúos Platform que te asigne a ese espacio.`
+            ? `Esta cuenta todavía no tiene acceso activo a la organización “${requestedTenantId}”. Solicita al administrador de AVALNIC que te asigne a ese espacio.`
             : 'Esta cuenta todavía no tiene acceso a una organización activa. Inicia sesión una vez y solicita al administrador que te asigne una empresa.');
           return;
         }
@@ -179,11 +179,11 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     const reportConfig = {
       tenantId,
       pdfTemplateId: branding.pdfTemplateId || tenant?.pdfTemplateId || (tenantId === 'amyblandon' ? 'amy-luxury-v2' : 'default-v1'),
-      organizationName: branding.organizationName || tenant?.name || 'Avalúos Platform',
+      organizationName: branding.organizationName || tenant?.name || 'AVALNIC',
       shortName: branding.shortName || initials(tenant?.name || tenant?.slug || 'AP'),
       website: branding.website || tenant?.website || '',
       reportTitle: branding.reportTitle || 'Informe Técnico de Avalúo',
-      footerText: branding.footerText || 'Documento generado por Avalúos Platform.',
+      footerText: branding.footerText || 'Documento generado por AVALNIC.',
       logoUrl: branding.logoUrl || '',
       primaryColor: branding.primaryColor || '#ffffff',
       secondaryColor: branding.secondaryColor || '#d4af37',
