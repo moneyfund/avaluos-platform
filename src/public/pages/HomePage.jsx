@@ -1,39 +1,87 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  ArrowRight, ArrowUpRight, Building2, CheckCircle2, FileText,
-  Layers3, MapPinned, ShieldCheck, Sparkles, TrendingUp
-} from 'lucide-react';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import Reveal from '../components/Reveal';
 import { usePageMeta } from '../components/PublicLayout';
 
-const capabilityItems = [
-  ['Terrenos', 'Lectura estructurada de ubicación, área, entorno, acceso, topografía y potencial.', <MapPinned />],
-  ['Viviendas', 'Análisis combinado del terreno, construcción, estado, distribución y contexto.', <Building2 />],
-  ['Informes', 'Resultados organizados para presentar, comparar y documentar decisiones.', <FileText />],
-];
+function TechnicalMark({ type }) {
+  if (type === 'land') {
+    return <svg viewBox='0 0 48 48' fill='none' aria-hidden='true'>
+      <path d='M7 34.5c8-5.6 12.5-2.4 18.4-6.4 5.1-3.4 7.2-8.8 15.6-11.3' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round'/>
+      <path d='M8 27.5c7.7-4.4 13-1.4 18.4-5.3 4.7-3.4 7.6-8.2 13.6-9.7' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round' opacity='.55'/>
+      <circle cx='21.5' cy='20' r='4.2' stroke='currentColor' strokeWidth='1.6'/>
+      <path d='M21.5 24.2v9.3' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round'/>
+    </svg>;
+  }
 
-function ValuationVisual() {
-  return <div className='valuation-visual' aria-hidden='true'>
-    <div className='valuation-orbit orbit-one' />
-    <div className='valuation-orbit orbit-two' />
-    <div className='valuation-grid' />
-    <motion.div
-      className='valuation-building'
-      initial={{ rotateY: -12, rotateX: 8 }}
-      animate={{ rotateY: [ -12, 8, -12 ], rotateX: [8, 2, 8] }}
-      transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+  if (type === 'home') {
+    return <svg viewBox='0 0 48 48' fill='none' aria-hidden='true'>
+      <path d='M8.5 23.2 24 10l15.5 13.2' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round' strokeLinejoin='round'/>
+      <path d='M12.5 20.3v17.2h23V20.3M20.2 37.5V27h7.6v10.5' stroke='currentColor' strokeWidth='1.6' strokeLinejoin='round'/>
+      <path d='M37.2 12.5v25M34.5 15h5.4M34.5 22h5.4M34.5 29h5.4' stroke='currentColor' strokeWidth='1.4' strokeLinecap='round' opacity='.62'/>
+    </svg>;
+  }
+
+  return <svg viewBox='0 0 48 48' fill='none' aria-hidden='true'>
+    <rect x='7.5' y='9.5' width='33' height='29' rx='2.5' stroke='currentColor' strokeWidth='1.6'/>
+    <path d='M12.5 16.5h10M12.5 22.5h18M12.5 28.5h13' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round'/>
+    <path d='M31 31.5 34.8 27l5.7 5.8' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round' strokeLinejoin='round'/>
+  </svg>;
+}
+
+function NicaraguaValuationMap() {
+  return <div className='nicaragua-valuation-visual' aria-label='Mapa estilizado de Nicaragua con marcador de valoración'>
+    <motion.svg
+      viewBox='0 0 540 520'
+      className='nicaragua-map-svg'
+      initial={{ opacity: 0, scale: .95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 1, delay: .18 }}
+      role='img'
+      aria-label='Nicaragua'
     >
-      <span className='building-plane plane-a' />
-      <span className='building-plane plane-b' />
-      <span className='building-plane plane-c' />
-    </motion.div>
-    <div className='valuation-reading reading-one'><small>UBICACIÓN</small><strong>01</strong></div>
-    <div className='valuation-reading reading-two'><small>ENTORNO</small><strong>02</strong></div>
-    <div className='valuation-reading reading-three'><small>CONDICIÓN</small><strong>03</strong></div>
-    <div className='valuation-index'><span>ÍNDICE DE ANÁLISIS</span><strong>VALOR</strong><i /></div>
+      <defs>
+        <linearGradient id='nicaraguaGold' x1='90' y1='70' x2='455' y2='440' gradientUnits='userSpaceOnUse'>
+          <stop stopColor='#f1d491'/>
+          <stop offset='.48' stopColor='#c79a47'/>
+          <stop offset='1' stopColor='#8f6729'/>
+        </linearGradient>
+        <filter id='mapShadow' x='-30%' y='-30%' width='160%' height='160%'>
+          <feDropShadow dx='0' dy='18' stdDeviation='17' floodColor='#071827' floodOpacity='.16'/>
+        </filter>
+      </defs>
+
+      <path
+        d='M 80 232.2 L 90.9 215.8 L 113.4 206.7 L 135.1 183.9 L 156.8 159.3 L 184.4 160.3 L 212 152.1 L 241.2 138.4 L 280.4 118.3 L 316.4 97.4 L 358.1 73.7 L 399 50 L 435.8 52.7 L 460 81 L 460 116.5 L 456.7 153.9 L 450 194 L 444.1 234.1 L 431.6 276 L 420.7 312.4 L 409.9 352.5 L 402.4 393.5 L 384 420 L 351.4 440 L 318 438.2 L 288.8 424.5 L 258.7 409 L 232.8 399.9 L 204.4 389 L 176.9 375.3 L 150.2 364.4 L 126.8 346.1 L 113.4 322.5 L 101.7 297.9 L 85.8 272.3 Z'
+        fill='url(#nicaraguaGold)'
+        filter='url(#mapShadow)'
+      />
+
+      <path d='M256 296c22-26 49-30 64-13 16 18 2 48-20 70-17 17-42 18-54 3-13-16-5-40 10-60Z' fill='#f7f3e9' opacity='.74'/>
+      <path d='M238 245c13-12 29-11 38-1 8 10 2 25-10 34-12 9-27 8-34-1-7-9-4-22 6-32Z' fill='#f7f3e9' opacity='.74'/>
+
+      <g className='valuation-marker'>
+        <circle cx='276' cy='235' r='46' fill='#071827' opacity='.96'/>
+        <circle cx='276' cy='235' r='37' fill='none' stroke='#e6c36f' strokeWidth='1.5'/>
+        <circle cx='276' cy='235' r='20' fill='none' stroke='#e6c36f' strokeWidth='1.5' opacity='.75'/>
+        <path d='M276 219v32M260 235h32' stroke='#f3de9f' strokeWidth='1.8' strokeLinecap='round'/>
+        <circle cx='276' cy='235' r='4.5' fill='#f3de9f'/>
+      </g>
+    </motion.svg>
+
+    <div className='map-caption'>
+      <span>NICARAGUA</span>
+      <strong>Valoración inmobiliaria con alcance nacional</strong>
+      <small>Una marca construida para profesionalizar el análisis y la presentación del valor.</small>
+    </div>
   </div>;
 }
+
+const capabilityItems = [
+  { type: 'land', title: 'Terrenos', body: 'Ubicación, área, acceso, topografía, entorno, servicios y potencial de uso.' },
+  { type: 'home', title: 'Viviendas', body: 'Terreno, construcción, estado, distribución, acabados y contexto inmobiliario.' },
+  { type: 'report', title: 'Empresas', body: 'Expedientes, usuarios, identidad propia y una plataforma preparada para operar en equipo.' },
+];
 
 export default function HomePage() {
   usePageMeta(
@@ -42,131 +90,77 @@ export default function HomePage() {
   );
 
   return <motion.div className='public-page' initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-    <section className='public-hero'>
+    <section className='public-hero public-hero-refined'>
       <div className='public-hero-copy'>
         <motion.div className='public-eyebrow' initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
-          <span>AVALNIC</span><i /> Valoración inmobiliaria + tecnología
+          <span>AVALNIC</span><i /> Valoración inmobiliaria en Nicaragua
         </motion.div>
+
         <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .08 }}>
-          El valor de un inmueble merece <em>más que una cifra.</em>
+          El valor de un inmueble merece <em>criterio, contexto y respaldo.</em>
         </motion.h1>
+
         <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .15 }}>
-          Transformamos información de una propiedad en una lectura estructurada, documentada y útil para decidir con mayor claridad.
+          Analizamos propiedades mediante variables estructuradas y convertimos esa información en una estimación clara, documentada y útil para tomar decisiones.
         </motion.p>
+
         <motion.div className='public-hero-actions' initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .22 }}>
-          <Link to='/contacto' className='public-primary-cta'>Solicitar una valoración <ArrowRight /></Link>
-          <Link to='/plataforma' className='public-text-cta'>Conocer la plataforma <ArrowUpRight /></Link>
+          <Link to='/contacto' className='public-primary-cta'>Solicitar valoración <ArrowRight /></Link>
+          <Link to='/servicios' className='public-text-cta'>Ver servicios <ArrowUpRight /></Link>
         </motion.div>
-        <motion.div className='public-hero-trust' initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: .38 }}>
-          <span><CheckCircle2 /> Metodología estructurada</span>
-          <span><ShieldCheck /> Información organizada por expediente</span>
-          <span><Layers3 /> Solución multiempresa</span>
+
+        <motion.div className='public-hero-trust refined-trust' initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: .34 }}>
+          <span>Metodología estructurada</span>
+          <span>Expediente documentado</span>
+          <span>Plataforma multiempresa</span>
         </motion.div>
       </div>
 
-      <motion.div className='public-hero-visual' initial={{ opacity: 0, scale: .96, x: 25 }} animate={{ opacity: 1, scale: 1, x: 0 }} transition={{ delay: .12, duration: .9 }}>
-        <ValuationVisual />
+      <motion.div className='public-hero-visual map-hero-shell' initial={{ opacity: 0, scale: .97, x: 22 }} animate={{ opacity: 1, scale: 1, x: 0 }} transition={{ delay: .12, duration: .9 }}>
+        <NicaraguaValuationMap />
       </motion.div>
-
-      <div className='hero-scroll-note'><span>Explora AVALNIC</span><i /></div>
     </section>
 
-    <section className='public-marquee' aria-label='Capacidades AVALNIC'>
-      <div>
-        <span>VALORACIÓN DE TERRENOS</span><i />
-        <span>ANÁLISIS DE VIVIENDAS</span><i />
-        <span>INFORMES PROFESIONALES</span><i />
-        <span>PLATAFORMA PARA EMPRESAS</span><i />
-        <span>TECNOLOGÍA INMOBILIARIA</span>
-      </div>
-    </section>
-
-    <section className='public-section public-intro-section'>
+    <section className='public-section public-intro-section refined-intro'>
       <Reveal className='section-heading section-heading-wide'>
-        <p>UNA NUEVA FORMA DE LEER EL VALOR</p>
-        <h2>Del inmueble a una decisión <em>defendible.</em></h2>
-        <span>AVALNIC organiza las variables que realmente cambian la lectura de una propiedad y las convierte en un proceso comprensible, trazable y presentable.</span>
+        <p>QUÉ HACEMOS</p>
+        <h2>Valoración inmobiliaria presentada con <em>claridad profesional.</em></h2>
+        <span>Trabajamos con terrenos, viviendas y organizaciones que necesitan incorporar una metodología de valoración más ordenada a su operación.</span>
       </Reveal>
 
-      <div className='capability-grid'>
-        {capabilityItems.map(([title, body, icon], index) => <Reveal className='capability-card' delay={index * .08} key={title}>
+      <div className='capability-grid refined-capability-grid'>
+        {capabilityItems.map((item, index) => <Reveal className='capability-card refined-capability-card' delay={index * .08} key={item.title}>
           <div className='capability-index'>0{index + 1}</div>
-          <div className='capability-icon'>{icon}</div>
-          <h3>{title}</h3>
-          <p>{body}</p>
-          <Link to='/servicios'>Explorar servicio <ArrowUpRight /></Link>
+          <div className='capability-icon technical-mark'><TechnicalMark type={item.type} /></div>
+          <h3>{item.title}</h3>
+          <p>{item.body}</p>
+          <Link to={item.title === 'Empresas' ? '/empresas' : '/servicios'}>Conocer más <ArrowUpRight /></Link>
         </Reveal>)}
       </div>
     </section>
 
-    <section className='public-section public-dark-section'>
+    <section className='public-section public-dark-section refined-dark-section'>
       <div className='public-dark-grid'>
         <Reveal className='section-heading section-heading-light'>
-          <p>CRITERIO + SISTEMA</p>
-          <h2>La tecnología no reemplaza el análisis. <em>Lo vuelve consistente.</em></h2>
-          <span>Nuestra plataforma permite ordenar datos, aplicar criterios definidos, conservar expedientes y generar resultados con una lógica repetible.</span>
-          <Link to='/plataforma' className='public-dark-link'>Ver cómo funciona AVALNIC <ArrowRight /></Link>
+          <p>METODOLOGÍA</p>
+          <h2>La tecnología organiza el proceso. <em>El criterio interpreta el inmueble.</em></h2>
+          <span>AVALNIC estructura la captura de datos, el análisis de factores, la estimación y el expediente final para que cada valoración siga una lógica consistente.</span>
+          <Link to='/plataforma' className='public-dark-link'>Conocer la plataforma <ArrowRight /></Link>
         </Reveal>
 
-        <Reveal className='method-console' delay={.1}>
-          <div className='console-top'><span>AVALNIC / ANALYSIS ENGINE</span><i /><i /><i /></div>
+        <Reveal className='method-console refined-method-console' delay={.1}>
+          <div className='console-top'><span>PROCESO DE VALORACIÓN</span><i /><i /><i /></div>
           <div className='console-body'>
-            <div className='console-score'><small>PROCESO</small><strong>04</strong><span>etapas conectadas</span></div>
+            <div className='console-score'><small>ETAPAS</small><strong>04</strong><span>flujo conectado</span></div>
             <div className='console-lines'>
-              {['Captura de variables', 'Lectura del contexto', 'Ponderación y cálculo', 'Informe y expediente'].map((item, index) => <div key={item}><b>0{index + 1}</b><span>{item}</span><i style={{ width: `${72 + index * 7}%` }} /></div>)}
+              {['Levantamiento de variables', 'Lectura del contexto', 'Estimación y rango', 'Informe y expediente'].map((item, index) => <div key={item}><b>0{index + 1}</b><span>{item}</span><i style={{ width: `${74 + index * 6}%` }} /></div>)}
             </div>
           </div>
         </Reveal>
       </div>
     </section>
 
-    <section className='public-section public-business-section'>
-      <Reveal className='business-lead'>
-        <p>SOLUCIONES PARA PROFESIONALES</p>
-        <h2>Una plataforma que también puede operar <em>bajo tu marca.</em></h2>
-      </Reveal>
-      <div className='business-feature-grid'>
-        <Reveal className='business-feature'>
-          <Sparkles />
-          <h3>Identidad por organización</h3>
-          <p>Cada firma puede trabajar con su propia imagen, colores, usuarios y entorno de trabajo.</p>
-        </Reveal>
-        <Reveal className='business-feature' delay={.08}>
-          <ShieldCheck />
-          <h3>Espacios independientes</h3>
-          <p>Los datos y permisos se organizan por organización para mantener una operación separada y administrable.</p>
-        </Reveal>
-        <Reveal className='business-feature' delay={.16}>
-          <TrendingUp />
-          <h3>Escalable por licencia</h3>
-          <p>Planes, módulos y límites permiten crecer desde una operación individual hasta equipos inmobiliarios.</p>
-        </Reveal>
-      </div>
-      <Reveal className='business-cta-band'>
-        <div><small>PARA INMOBILIARIAS, AGENTES Y EQUIPOS</small><strong>Integra AVALNIC a tu operación.</strong></div>
-        <Link to='/empresas'>Soluciones empresariales <ArrowUpRight /></Link>
-      </Reveal>
-    </section>
-
-    <section className='public-section public-process-section'>
-      <Reveal className='section-heading'>
-        <p>PROCESO</p>
-        <h2>Claridad desde el primer dato.</h2>
-      </Reveal>
-      <div className='process-line'>
-        {[
-          ['01', 'Levantamiento', 'Se estructura la información relevante de la propiedad.'],
-          ['02', 'Análisis', 'Se interpretan características, contexto y factores de valor.'],
-          ['03', 'Estimación', 'Se obtiene un resultado y un rango útil para la toma de decisiones.'],
-          ['04', 'Documentación', 'El expediente conserva la información y permite presentar el resultado.'],
-        ].map(([number, title, text], index) => <Reveal className='process-step' delay={index * .07} key={number}>
-          <span>{number}</span><i /><h3>{title}</h3><p>{text}</p>
-        </Reveal>)}
-      </div>
-    </section>
-
-    <section className='public-final-cta'>
-      <div className='final-cta-grid' />
+    <section className='public-final-cta refined-final-cta'>
       <Reveal>
         <img src='/avalnic-favicon.svg' alt='' />
         <p>CUANDO EL VALOR IMPORTA</p>
