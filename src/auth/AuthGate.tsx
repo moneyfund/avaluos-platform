@@ -8,7 +8,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     return <main className='auth-shell'><section className='auth-card'>
       <ShieldCheck />
       <p className='auth-kicker'>Firebase pendiente de conectar</p>
-      <h1>Avalúos Platform está listo para recibir las variables del Firebase independiente.</h1>
+      <h1>AVALNIC está listo para recibir las variables del Firebase independiente.</h1>
       <p>Agrega las variables <code>VITE_FIREBASE_*</code> del proyecto de Firebase al entorno local o a Vercel. No es necesario guardar credenciales privadas en GitHub.</p>
     </section></main>;
   }
@@ -21,7 +21,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     return <main className='auth-shell'><section className='auth-card'>
       <ShieldCheck />
       <p className='auth-kicker'>Acceso profesional</p>
-      <h1>Inicia sesión para utilizar Avalúos Platform</h1>
+      <h1>Inicia sesión para utilizar AVALNIC</h1>
       <p>La autenticación se realiza con Google. Las organizaciones y permisos se conectarán a esta misma identidad.</p>
       <button type='button' className='auth-google-button' onClick={signInGoogle}><LogIn /> Continuar con Google</button>
       {error && <div className='terrain-error' role='alert'>{error}</div>}
