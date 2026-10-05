@@ -30,49 +30,43 @@ function TechnicalMark({ type }) {
 }
 
 function NicaraguaValuationMap() {
-  return <div className='nicaragua-valuation-visual' aria-label='Mapa estilizado de Nicaragua con marcador de valoración'>
-    <motion.svg
-      viewBox='0 0 540 520'
-      className='nicaragua-map-svg'
-      initial={{ opacity: 0, scale: .95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 1, delay: .18 }}
-      role='img'
-      aria-label='Nicaragua'
-    >
-      <defs>
-        <linearGradient id='nicaraguaGold' x1='90' y1='70' x2='455' y2='440' gradientUnits='userSpaceOnUse'>
-          <stop stopColor='#f1d491'/>
-          <stop offset='.48' stopColor='#c79a47'/>
-          <stop offset='1' stopColor='#8f6729'/>
-        </linearGradient>
-        <filter id='mapShadow' x='-30%' y='-30%' width='160%' height='160%'>
-          <feDropShadow dx='0' dy='18' stdDeviation='17' floodColor='#071827' floodOpacity='.16'/>
-        </filter>
-      </defs>
-
-      <path
-        d='M 80 232.2 L 90.9 215.8 L 113.4 206.7 L 135.1 183.9 L 156.8 159.3 L 184.4 160.3 L 212 152.1 L 241.2 138.4 L 280.4 118.3 L 316.4 97.4 L 358.1 73.7 L 399 50 L 435.8 52.7 L 460 81 L 460 116.5 L 456.7 153.9 L 450 194 L 444.1 234.1 L 431.6 276 L 420.7 312.4 L 409.9 352.5 L 402.4 393.5 L 384 420 L 351.4 440 L 318 438.2 L 288.8 424.5 L 258.7 409 L 232.8 399.9 L 204.4 389 L 176.9 375.3 L 150.2 364.4 L 126.8 346.1 L 113.4 322.5 L 101.7 297.9 L 85.8 272.3 Z'
-        fill='url(#nicaraguaGold)'
-        filter='url(#mapShadow)'
+  return <div className='nicaragua-valuation-visual is-real-map' aria-label='Croquis real de Nicaragua con marcador de valoración'>
+    <div className='nicaragua-map-stage'>
+      <motion.img
+        src='/nicaragua-outline.svg'
+        alt='Croquis de Nicaragua'
+        className='nicaragua-real-outline'
+        initial={{ opacity: 0, scale: .94, rotate: -1 }}
+        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+        transition={{ duration: 1.05, delay: .12 }}
       />
 
-      <path d='M256 296c22-26 49-30 64-13 16 18 2 48-20 70-17 17-42 18-54 3-13-16-5-40 10-60Z' fill='#f7f3e9' opacity='.74'/>
-      <path d='M238 245c13-12 29-11 38-1 8 10 2 25-10 34-12 9-27 8-34-1-7-9-4-22 6-32Z' fill='#f7f3e9' opacity='.74'/>
+      <motion.div
+        className='valuation-professional-marker'
+        initial={{ opacity: 0, scale: .78, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: .65, delay: .58 }}
+        aria-hidden='true'
+      >
+        <span className='valuation-marker-ring ring-one' />
+        <span className='valuation-marker-ring ring-two' />
+        <div className='valuation-marker-core'>
+          <svg viewBox='0 0 48 48' fill='none'>
+            <circle cx='24' cy='24' r='13.5' stroke='currentColor' strokeWidth='1.4'/>
+            <path d='M24 6v7M24 35v7M6 24h7M35 24h7' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round'/>
+            <path d='m17 27 5-5 4 4 7-8' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round' strokeLinejoin='round'/>
+            <circle cx='24' cy='24' r='2.3' fill='currentColor'/>
+          </svg>
+        </div>
+      </motion.div>
 
-      <g className='valuation-marker'>
-        <circle cx='276' cy='235' r='46' fill='#071827' opacity='.96'/>
-        <circle cx='276' cy='235' r='37' fill='none' stroke='#e6c36f' strokeWidth='1.5'/>
-        <circle cx='276' cy='235' r='20' fill='none' stroke='#e6c36f' strokeWidth='1.5' opacity='.75'/>
-        <path d='M276 219v32M260 235h32' stroke='#f3de9f' strokeWidth='1.8' strokeLinecap='round'/>
-        <circle cx='276' cy='235' r='4.5' fill='#f3de9f'/>
-      </g>
-    </motion.svg>
+      <div className='map-coordinate-note'>NIC · 12.8654° N / 85.2072° W</div>
+    </div>
 
     <div className='map-caption'>
       <span>NICARAGUA</span>
       <strong>Valoración inmobiliaria con alcance nacional</strong>
-      <small>Una marca construida para profesionalizar el análisis y la presentación del valor.</small>
+      <small>Una identidad local con metodología, documentación y tecnología preparadas para crecer.</small>
     </div>
   </div>;
 }
