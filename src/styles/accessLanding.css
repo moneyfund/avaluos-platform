@@ -237,3 +237,36 @@
   .access-landing-card { padding: 24px 20px; border-radius: 22px; }
   .access-footer { flex-direction: column; gap: 6px; }
 }
+
+
+/* AVALNIC platform identity */
+.access-brand-avalnic {
+  justify-content: space-between;
+  gap: 22px;
+}
+.access-avalnic-logo {
+  width: min(250px, 58vw);
+  height: auto;
+  display: block;
+}
+.access-brand-avalnic > span {
+  max-width: 180px;
+  color: #89929a;
+  font-size: .61rem;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: .12em;
+  text-align: right;
+  text-transform: uppercase;
+}
+.access-config-logo {
+  width: min(265px, 70%);
+  height: auto;
+  display: block;
+  margin: 0 auto 22px;
+}
+@media (max-width: 540px) {
+  .access-brand-avalnic { align-items: flex-start; flex-direction: column; }
+  .access-brand-avalnic > span { max-width: none; text-align: left; }
+  .access-avalnic-logo { width: min(235px, 78vw); }
+}
