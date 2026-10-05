@@ -198,3 +198,29 @@
   .personalization-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .personalization-save { grid-column: 1 / -1; margin-left: 0; }
 }
+
+
+/* Amy Blandón sidebar contrast: keep navigation fully legible on navy */
+.client-workspace.is-amy-tenant .client-nav > small,
+.client-workspace.is-amy-tenant .client-nav-settings-label {
+  color: #9fb2c0 !important;
+}
+.client-workspace.is-amy-tenant .client-nav a {
+  color: #ffffff !important;
+}
+.client-workspace.is-amy-tenant .client-nav a strong {
+  color: #ffffff !important;
+}
+.client-workspace.is-amy-tenant .client-nav a em {
+  color: #c0ced8 !important;
+}
+.client-workspace.is-amy-tenant .client-nav a > svg {
+  color: #d6e1e8 !important;
+}
+.client-workspace.is-amy-tenant .client-nav a.is-active > svg {
+  color: #57c8c1 !important;
+}
+.client-workspace.is-amy-tenant .client-nav a:hover strong,
+.client-workspace.is-amy-tenant .client-nav a.is-active strong {
+  color: #ffffff !important;
+}
