@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { History, Home, KeyRound, LogOut, MapPinned, Palette, ShieldCheck, Sparkles } from 'lucide-react';
 import TerrenoWorkspace from './features/avaluos/components/TerrenoWorkspace';
@@ -12,11 +13,13 @@ import PlatformAdminGate from './platform/PlatformAdminGate';
 import PlatformAdminPage from './platform/PlatformAdminPage';
 import { isRootPlatformAdmin } from './platform/platformAdminAccess';
 
+const PublicSite = lazy(() => import('./public/PublicSite'));
+
 function TenantGate({ children }) {
   const { loading, tenantId, error, licenseActive, licenseExpired, licenseStatus } = useTenant();
   if (loading) return <div className='tenant-gate'><div><span>Preparando organización</span><h1>Conectando tu espacio de avalúos...</h1></div></div>;
-  if (!tenantId) return <div className='tenant-gate'><div><span>Acceso pendiente</span><h1>No hay una organización activa para esta cuenta.</h1><p>{error || 'Solicita acceso al administrador de la plataforma.'}</p><a href='/'>Cambiar cuenta de acceso</a></div></div>;
-  if (!licenseActive) return <div className='tenant-gate'><div><span>LICENCIA NO DISPONIBLE</span><h1>{licenseExpired || licenseStatus === 'expired' ? 'La licencia de esta organización ha vencido.' : 'La licencia de esta organización está suspendida.'}</h1><p>Contacta al administrador de Avalúos Platform para reactivar el servicio.</p><a href='/'>Volver a la pantalla de acceso</a></div></div>;
+  if (!tenantId) return <div className='tenant-gate'><div><span>Acceso pendiente</span><h1>No hay una organización activa para esta cuenta.</h1><p>{error || 'Solicita acceso al administrador de la plataforma.'}</p><a href='/acceso'>Cambiar cuenta de acceso</a></div></div>;
+  if (!licenseActive) return <div className='tenant-gate'><div><span>LICENCIA NO DISPONIBLE</span><h1>{licenseExpired || licenseStatus === 'expired' ? 'La licencia de esta organización ha vencido.' : 'La licencia de esta organización está suspendida.'}</h1><p>Contacta al administrador de AVALNIC para reactivar el servicio.</p><a href='/acceso'>Volver a la pantalla de acceso</a></div></div>;
   return children;
 }
 
@@ -129,11 +132,21 @@ function TenantWorkspaceRoute() {
   return <AuthGate><TenantProvider><TenantGate><AppWorkspace /></TenantGate></TenantProvider></AuthGate>;
 }
 
+function PublicSiteRoute() {
+  const location = useLocation();
+  const tenant = new URLSearchParams(location.search).get('tenant');
+  if (location.pathname === '/' && tenant) return <AccessLanding />;
+  return <Suspense fallback={<div className='public-route-loader'><img src='/avalnic-favicon.svg' alt='AVALNIC' /></div>}><PublicSite /></Suspense>;
+}
+
 function RoutedApp() {
   return <Routes>
-    <Route path='/' element={<AccessLanding />} />
+    <Route path='/acceso' element={<AccessLanding />} />
     <Route path='/platform-admin/*' element={<PlatformAdminGate><PlatformAdminPage /></PlatformAdminGate>} />
-    <Route path='*' element={<TenantWorkspaceRoute />} />
+    <Route path='/avaluos/*' element={<TenantWorkspaceRoute />} />
+    <Route path='/historial' element={<TenantWorkspaceRoute />} />
+    <Route path='/personalizacion' element={<TenantWorkspaceRoute />} />
+    <Route path='/*' element={<PublicSiteRoute />} />
   </Routes>;
 }
 
