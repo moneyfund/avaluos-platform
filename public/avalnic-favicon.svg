@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">AVALNIC</title>
+  <defs>
+    <linearGradient id="gold" x1="115" y1="40" x2="420" y2="430" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f5d995"/>
+      <stop offset=".42" stop-color="#d6ad5d"/>
+      <stop offset="1" stop-color="#9b6a24"/>
+    </linearGradient>
+    <linearGradient id="navy" x1="180" y1="35" x2="320" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#132d45"/>
+      <stop offset="1" stop-color="#071827"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(-88 28) scale(.94)">
+    <path d="M350 20 470 132v250H374V226l-84-78v-72Z" fill="url(#gold)"/>
+    <path d="M350 20 264 102v75l63-58v263h38V20Z" fill="url(#navy)"/>
+    <path d="M327 151 160 306v98l167-155Z" fill="url(#gold)"/>
+    <path d="M366 180 470 276v106H366Z" fill="url(#navy)"/>
+    <path d="M493 214 548 266v116h-55Z" fill="url(#gold)"/>
+    <path d="M485 210v172h11V214Z" fill="url(#navy)"/>
+    <path d="M350 20v362" stroke="#f7e7bd" stroke-width="6" opacity=".75"/>
+  </g>
+</svg>
