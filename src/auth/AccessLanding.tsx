@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowRight, Building2, LogIn, RefreshCw, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { ArrowRight, Building2, LogIn, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { isRootPlatformAdmin } from '../platform/platformAdminAccess';
 
@@ -37,9 +37,9 @@ export default function AccessLanding() {
   if (!configured) {
     return <main className='access-landing'>
       <section className='access-landing-card'>
-        <div className='access-brand-mark'><ShieldCheck /></div>
+        <img className='access-config-logo' src='/avalnic-logo.svg' alt='AVALNIC' />
         <p className='access-kicker'>CONFIGURACIÓN PENDIENTE</p>
-        <h1>Avalúos Platform</h1>
+        <h1>AVALNIC</h1>
         <p className='access-copy'>Firebase no está configurado en este entorno.</p>
       </section>
     </main>;
@@ -59,12 +59,9 @@ export default function AccessLanding() {
     <div className='access-ambient access-ambient-two' />
 
     <section className='access-landing-card'>
-      <header className='access-brand'>
-        <div className='access-brand-mark'><ShieldCheck /></div>
-        <div>
-          <strong>Avalúos Platform</strong>
-          <span>Professional Valuation Suite</span>
-        </div>
+      <header className='access-brand access-brand-avalnic'>
+        <img className='access-avalnic-logo' src='/avalnic-logo.svg' alt='AVALNIC' />
+        <span>Professional Valuation Suite</span>
       </header>
 
       <div className='access-intro'>
@@ -111,7 +108,7 @@ export default function AccessLanding() {
       </div>}
 
       {user && isRootPlatformAdmin(user) && <a className='access-admin-link' href='/platform-admin'>
-        <SlidersHorizontal /> Ir a Administración Central
+        <SlidersHorizontal /> Ir a Administración Central de AVALNIC
       </a>}
 
       {error && <div className='access-error' role='alert'>{error}</div>}
