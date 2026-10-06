@@ -37,7 +37,7 @@ function AppWorkspace() {
   const branding = tenant?.branding || {};
   const portalTheme = branding.portalTheme || {};
   const isAmy = tenantId === 'amyblandon';
-  const isDiamantes = tenantId === 'diamantes';
+  const isDiamantes = tenantId === 'marvin-valdivia' || tenantId === 'diamantes';
   const amyAdminTheme = {
     accentColor: '#2ba7a0',
     pageBackground: '#f4f7f9',

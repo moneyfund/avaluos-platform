@@ -16,7 +16,7 @@ export default function AccessLanding() {
   const [busy, setBusy] = useState(false);
   const target = useMemo(currentTarget, []);
   const isAmy = target.tenantId === 'amyblandon';
-  const isDiamantes = target.tenantId === 'diamantes';
+  const isDiamantes = target.tenantId === 'marvin-valdivia' || target.tenantId === 'diamantes';
   const targetOrganizationName = isAmy ? 'Amy Blandón' : isDiamantes ? 'Diamantes Realty Group' : target.tenantId;
 
   const enterWorkspace = () => {
