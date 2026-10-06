@@ -16,6 +16,8 @@ export default function AccessLanding() {
   const [busy, setBusy] = useState(false);
   const target = useMemo(currentTarget, []);
   const isAmy = target.tenantId === 'amyblandon';
+  const isDiamantes = target.tenantId === 'diamantes';
+  const targetOrganizationName = isAmy ? 'Amy Blandón' : isDiamantes ? 'Diamantes Realty Group' : target.tenantId;
 
   const enterWorkspace = () => {
     window.location.assign(`/avaluos${target.search}`);
@@ -78,7 +80,7 @@ export default function AccessLanding() {
         <Building2 />
         <span>
           <small>Organización solicitada</small>
-          <strong>{isAmy ? 'Amy Blandón' : target.tenantId}</strong>
+          <strong>{targetOrganizationName}</strong>
         </span>
       </div>}
 

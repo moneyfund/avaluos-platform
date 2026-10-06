@@ -37,6 +37,7 @@ function AppWorkspace() {
   const branding = tenant?.branding || {};
   const portalTheme = branding.portalTheme || {};
   const isAmy = tenantId === 'amyblandon';
+  const isDiamantes = tenantId === 'diamantes';
   const amyAdminTheme = {
     accentColor: '#2ba7a0',
     pageBackground: '#f4f7f9',
@@ -46,7 +47,16 @@ function AppWorkspace() {
     navActiveBackground: '#e9f6f5',
     textColor: '#14212e',
   };
-  const activeTheme = isAmy ? amyAdminTheme : portalTheme;
+  const avalnicDiamantesTheme = {
+    accentColor: '#c8a85b',
+    pageBackground: '#f5f4f0',
+    sidebarBackground: '#ffffff',
+    topbarBackground: '#faf9f6',
+    cardBackground: '#ffffff',
+    navActiveBackground: '#fff9eb',
+    textColor: '#1d2430',
+  };
+  const activeTheme = isAmy ? amyAdminTheme : isDiamantes ? avalnicDiamantesTheme : portalTheme;
   const accent = activeTheme.accentColor || branding.secondaryColor || '#c8a85b';
   const tenantLogo = isAmy ? '/amy-blandon-logo.svg' : branding.logoUrl;
   const initials = String(branding.shortName || tenant?.name || 'AP').split(/\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 3).toUpperCase();
