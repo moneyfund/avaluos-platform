@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Activity, Database, MapPinned, Ruler, RotateCcw, ShieldCheck } from 'lucide-react';
+import { Database, MapPinned, Ruler, RotateCcw, ShieldCheck } from 'lucide-react';
 import TerrenoForm from '../forms/TerrenoForm';
 import { calcularAvaluo } from '../../../core/avaluos/engine/avaluo.engine';
 import DownloadAvaluoPdfButton from './DownloadAvaluoPdfButton';
@@ -19,7 +19,7 @@ const initialForm = () => ({
 const usd = (value) => Number(value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 
 export default function TerrenoWorkspace() {
-  const { reportConfig, tenant } = useTenant();
+  const { reportConfig } = useTenant();
   const [form, setForm] = useState<any>(initialForm);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
@@ -55,34 +55,6 @@ export default function TerrenoWorkspace() {
     : 'Pendiente';
 
   return <main className='terrain-page valuation-workbench-page'>
-    <header className='valuation-command-hero'>
-      <div className='valuation-command-main'>
-        <div className='valuation-command-brand'>
-          <span className='valuation-brand-emblem'><img src='/avaluos-platform-mark.svg' alt='' /></span>
-          <span><strong>AVALNIC CORE</strong><small>{tenant?.name || 'Workspace profesional'} · Motor de valoración</small></span>
-        </div>
-        <div className='valuation-command-copy'>
-          <span className='terrain-kicker'>VALORACIÓN INMOBILIARIA · TERRENOS</span>
-          <h1>Valora suelo con criterio técnico, contexto territorial y lectura de mercado.</h1>
-          <p>Construye el expediente por etapas con una interfaz de inspección profesional. La metodología, referencias y conexiones existentes permanecen intactas.</p>
-        </div>
-        <div className='valuation-command-meta'>
-          <span><ShieldCheck /> Motor protegido</span>
-          <span><Activity /> Sesión activa</span>
-          <span><Database /> Datos por organización</span>
-        </div>
-      </div>
-
-      <div className='valuation-command-side'>
-        <div className='valuation-engine-card'>
-          <span className='valuation-engine-icon'><Activity /></span>
-          <div><small>ESTADO DEL MOTOR</small><strong>Listo para valorar</strong><p>Variables técnicas y territoriales conectadas.</p></div>
-          <i />
-        </div>
-        <button type='button' className='terrain-reset' onClick={reset}><RotateCcw /> Nuevo expediente</button>
-      </div>
-    </header>
-
     <section className='terrain-status-grid valuation-overview-grid'>
       <StatusCard icon={<MapPinned />} label='Ciudad base' value={form.ciudad} />
       <StatusCard icon={<Database />} label='Zona de mercado' value={form.zona || 'Por seleccionar'} />
@@ -94,7 +66,7 @@ export default function TerrenoWorkspace() {
       <div className='valuation-form-chrome'>
         <span className='valuation-form-chrome-icon'><Ruler /></span>
         <div><span>EXPEDIENTE TÉCNICO</span><h2>Inspección y valoración del terreno</h2><p>Completa cada bloque con datos verificables. El sistema conserva el contexto mientras avanzas.</p></div>
-        <div className='valuation-form-secure'><ShieldCheck /><span><strong>Núcleo conectado</strong><small>Cálculo · Firebase · PDF</small></span></div>
+        <div className='valuation-form-tools'><div className='valuation-form-secure'><ShieldCheck /><span><strong>Núcleo conectado</strong><small>Cálculo · Firebase · PDF</small></span></div><button type='button' className='valuation-reset-inline' onClick={reset}><RotateCcw /> Nuevo expediente</button></div>
       </div>
       <TerrenoForm key={formVersion} value={form} onChange={change} onSubmit={calculate} loading={loading} />
       {error && <div className='terrain-error' role='alert'>{error}</div>}

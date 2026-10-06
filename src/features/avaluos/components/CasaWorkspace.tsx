@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Activity, Building2, Database, Home, Ruler, RotateCcw, ShieldCheck } from 'lucide-react';
+import { Building2, Database, Home, Ruler, RotateCcw, ShieldCheck } from 'lucide-react';
 import CasaForm from '../forms/CasaForm';
 import { calcularAvaluo } from '../../../core/avaluos/engine/avaluo.engine';
 import DownloadAvaluoPdfButton from './DownloadAvaluoPdfButton';
@@ -19,7 +19,7 @@ const initialForm = () => ({
 const usd = (value) => Number(value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 
 export default function CasaWorkspace() {
-  const { reportConfig, tenant } = useTenant();
+  const { reportConfig } = useTenant();
   const [form, setForm] = useState<any>(initialForm);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
@@ -60,34 +60,6 @@ export default function CasaWorkspace() {
     : 'Pendiente';
 
   return <main className='terrain-page valuation-workbench-page'>
-    <header className='valuation-command-hero'>
-      <div className='valuation-command-main'>
-        <div className='valuation-command-brand'>
-          <span className='valuation-brand-emblem'><img src='/avaluos-platform-mark.svg' alt='' /></span>
-          <span><strong>AVALNIC CORE</strong><small>{tenant?.name || 'Workspace profesional'} · Motor de valoración</small></span>
-        </div>
-        <div className='valuation-command-copy'>
-          <span className='terrain-kicker'>VALORACIÓN INMOBILIARIA · VIVIENDA</span>
-          <h1>Integra terreno, construcción y condición física en un solo expediente técnico.</h1>
-          <p>Registra la inspección por bloques claros, conserva la trazabilidad del análisis y genera un resultado listo para documentar y respaldar.</p>
-        </div>
-        <div className='valuation-command-meta'>
-          <span><ShieldCheck /> Motor protegido</span>
-          <span><Activity /> Sesión activa</span>
-          <span><Database /> Datos por organización</span>
-        </div>
-      </div>
-
-      <div className='valuation-command-side'>
-        <div className='valuation-engine-card'>
-          <span className='valuation-engine-icon'><Building2 /></span>
-          <div><small>ESTADO DEL MOTOR</small><strong>Listo para valorar</strong><p>Terreno y construcción conectados al expediente.</p></div>
-          <i />
-        </div>
-        <button type='button' className='terrain-reset' onClick={reset}><RotateCcw /> Nuevo expediente</button>
-      </div>
-    </header>
-
     <section className='terrain-status-grid valuation-overview-grid'>
       <StatusCard icon={<Home />} label='Ciudad base' value={form.ciudad} />
       <StatusCard icon={<Database />} label='Zona de mercado' value={form.zona || 'Por seleccionar'} />
@@ -99,7 +71,7 @@ export default function CasaWorkspace() {
       <div className='valuation-form-chrome'>
         <span className='valuation-form-chrome-icon'><Building2 /></span>
         <div><span>EXPEDIENTE TÉCNICO</span><h2>Inspección y valoración de vivienda</h2><p>Registra ubicación, lote, construcción, materiales, distribución y documentación sin perder el contexto.</p></div>
-        <div className='valuation-form-secure'><ShieldCheck /><span><strong>Núcleo conectado</strong><small>{completed} campos · Firebase · PDF</small></span></div>
+        <div className='valuation-form-tools'><div className='valuation-form-secure'><ShieldCheck /><span><strong>Núcleo conectado</strong><small>{completed} campos · Firebase · PDF</small></span></div><button type='button' className='valuation-reset-inline' onClick={reset}><RotateCcw /> Nuevo expediente</button></div>
       </div>
       <CasaForm key={formVersion} value={form} onChange={change} onSubmit={calculate} loading={loading} />
       {error && <div className='terrain-error' role='alert'>{error}</div>}
