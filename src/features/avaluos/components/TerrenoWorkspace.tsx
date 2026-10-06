@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Calculator, CheckCircle2, MapPinned, RotateCcw } from 'lucide-react';
+import { Activity, Database, MapPinned, Ruler, RotateCcw, ShieldCheck } from 'lucide-react';
 import TerrenoForm from '../forms/TerrenoForm';
 import { calcularAvaluo } from '../../../core/avaluos/engine/avaluo.engine';
 import DownloadAvaluoPdfButton from './DownloadAvaluoPdfButton';
@@ -19,7 +19,7 @@ const initialForm = () => ({
 const usd = (value) => Number(value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 
 export default function TerrenoWorkspace() {
-  const { reportConfig } = useTenant();
+  const { reportConfig, tenant } = useTenant();
   const [form, setForm] = useState<any>(initialForm);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
@@ -50,31 +50,57 @@ export default function TerrenoWorkspace() {
   };
 
   const reset = () => { setForm(initialForm()); setResult(null); setError(''); setFormVersion((value) => value + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const areaLabel = Number(form.areaOriginal)
+    ? Number(form.areaOriginal).toLocaleString('es-NI', { maximumFractionDigits: 2 }) + (form.unidadArea === 'manzana' ? ' mz' : ' m²')
+    : 'Pendiente';
 
-  return <main className='terrain-page'>
-    <header className='terrain-hero'>
-      <div className='terrain-hero-copy'>
-        <span className='terrain-kicker'>VALORACIÓN INMOBILIARIA · TERRENOS</span>
-        <h1>Construye un avalúo técnico con una lectura clara del mercado.</h1>
-        <p>Completa el expediente por etapas. El motor conserva la metodología vigente y transforma la información registrada en un valor estimado, rango de mercado e informe profesional.</p>
-        <div className='terrain-hero-note'><i /> Los cambios del formulario recalculan únicamente este expediente; no modifican los precios maestros.</div>
+  return <main className='terrain-page valuation-workbench-page'>
+    <header className='valuation-command-hero'>
+      <div className='valuation-command-main'>
+        <div className='valuation-command-brand'>
+          <span className='valuation-brand-emblem'><img src='/avaluos-platform-mark.svg' alt='' /></span>
+          <span><strong>AVALNIC CORE</strong><small>{tenant?.name || 'Workspace profesional'} · Motor de valoración</small></span>
+        </div>
+        <div className='valuation-command-copy'>
+          <span className='terrain-kicker'>VALORACIÓN INMOBILIARIA · TERRENOS</span>
+          <h1>Valora suelo con criterio técnico, contexto territorial y lectura de mercado.</h1>
+          <p>Construye el expediente por etapas con una interfaz de inspección profesional. La metodología, referencias y conexiones existentes permanecen intactas.</p>
+        </div>
+        <div className='valuation-command-meta'>
+          <span><ShieldCheck /> Motor protegido</span>
+          <span><Activity /> Sesión activa</span>
+          <span><Database /> Datos por organización</span>
+        </div>
       </div>
-      <button type='button' className='terrain-reset' onClick={reset}><RotateCcw /> Nuevo avalúo</button>
+
+      <div className='valuation-command-side'>
+        <div className='valuation-engine-card'>
+          <span className='valuation-engine-icon'><Activity /></span>
+          <div><small>ESTADO DEL MOTOR</small><strong>Listo para valorar</strong><p>Variables técnicas y territoriales conectadas.</p></div>
+          <i />
+        </div>
+        <button type='button' className='terrain-reset' onClick={reset}><RotateCcw /> Nuevo expediente</button>
+      </div>
     </header>
 
-    <section className='terrain-status-grid'>
-      <div><MapPinned /><span><small>Ubicación</small><strong>{form.ciudad}</strong></span></div>
-      <div><CheckCircle2 /><span><small>Zona seleccionada</small><strong>{form.zona || 'Pendiente'}</strong></span></div>
-      <div><Calculator /><span><small>Información registrada</small><strong>{completed} campos</strong></span></div>
+    <section className='terrain-status-grid valuation-overview-grid'>
+      <StatusCard icon={<MapPinned />} label='Ciudad base' value={form.ciudad} />
+      <StatusCard icon={<Database />} label='Zona de mercado' value={form.zona || 'Por seleccionar'} />
+      <StatusCard icon={<Ruler />} label='Superficie' value={areaLabel} />
+      <StatusCard icon={<ShieldCheck />} label='Datos registrados' value={completed + ' campos'} tone='teal' />
     </section>
 
-    <section className='terrain-form-shell'>
-      <div className='terrain-form-heading'><div><span>EXPEDIENTE TÉCNICO</span><h2>Información del terreno</h2><p>Avanza paso a paso; cada etapa mantiene tus datos mientras continúas.</p></div><strong>01</strong></div>
+    <section className='terrain-form-shell valuation-console'>
+      <div className='valuation-form-chrome'>
+        <span className='valuation-form-chrome-icon'><Ruler /></span>
+        <div><span>EXPEDIENTE TÉCNICO</span><h2>Inspección y valoración del terreno</h2><p>Completa cada bloque con datos verificables. El sistema conserva el contexto mientras avanzas.</p></div>
+        <div className='valuation-form-secure'><ShieldCheck /><span><strong>Núcleo conectado</strong><small>Cálculo · Firebase · PDF</small></span></div>
+      </div>
       <TerrenoForm key={formVersion} value={form} onChange={change} onSubmit={calculate} loading={loading} />
       {error && <div className='terrain-error' role='alert'>{error}</div>}
     </section>
 
-    {result && <section id='resultado-terreno' className='terrain-result'>
+    {result && <section id='resultado-terreno' className='terrain-result valuation-result'>
       <div className='terrain-result-heading'><div><p>RESULTADO DE VALORACIÓN</p><h2>{form.titulo || 'Avalúo de terreno'}</h2><span>{form.ciudad} · {form.zona}</span></div><div className='terrain-result-main'><small>Valor final estimado</small><strong>{usd(result.valorFinalEstimado)}</strong><span>Confianza: {result.nivelConfianza}</span></div></div>
       <div className='terrain-metrics'>
         <Metric label='Rango mínimo' value={usd(result.rangoMercado?.minimo)} />
@@ -83,15 +109,18 @@ export default function TerrenoWorkspace() {
         <Metric label='Precio final por manzana' value={usd(result.pricePerManzana)} />
         <Metric label='Valor base' value={usd(result.baseValueTotal ?? result.valorBase)} />
         <Metric label='Factor técnico' value={Number(result.technicalAdjustmentFactor ?? result.factorGlobal ?? 1).toFixed(3)} />
-        <Metric label='Liquidez' value={result.indiceLiquidez ? `${result.indiceLiquidez}/100` : '—'} />
+        <Metric label='Liquidez' value={result.indiceLiquidez ? result.indiceLiquidez + '/100' : '—'} />
         <Metric label='Venta estimada' value={result.tiempoEstimadoVenta || '—'} />
       </div>
       <div className='avaluo-result-actions'>{pdfAvaluo && <DownloadAvaluoPdfButton avaluo={pdfAvaluo} />}<SaveAvaluoButton tipo='terreno' form={form} result={result} /></div>
       <details className='terrain-coefficients' open><summary>Coeficientes aplicados <span>{Array.isArray(result.coeficientesAplicados) ? result.coeficientesAplicados.length : 0}</span></summary>
-        <div className='terrain-table-wrap'><table><thead><tr><th>Factor</th><th>Valor aplicado</th><th>Impacto</th><th>Justificación</th></tr></thead><tbody>{(Array.isArray(result.coeficientesAplicados) ? result.coeficientesAplicados : []).map((item, index) => <tr key={`${item.factor}-${index}`}><td>{item.factor}</td><td>{item.valorAplicado}</td><td>{item.impacto}</td><td>{item.justificacion || '—'}</td></tr>)}</tbody></table></div>
+        <div className='terrain-table-wrap'><table><thead><tr><th>Factor</th><th>Valor aplicado</th><th>Impacto</th><th>Justificación</th></tr></thead><tbody>{(Array.isArray(result.coeficientesAplicados) ? result.coeficientesAplicados : []).map((item, index) => <tr key={item.factor + '-' + index}><td>{item.factor}</td><td>{item.valorAplicado}</td><td>{item.impacto}</td><td>{item.justificacion || '—'}</td></tr>)}</tbody></table></div>
       </details>
     </section>}
   </main>;
 }
 
+function StatusCard({ icon, label, value, tone = 'gold' }) {
+  return <article className={'valuation-status-card is-' + tone}><span className='valuation-status-icon'>{icon}</span><div><small>{label}</small><strong>{value}</strong></div><i /></article>;
+}
 function Metric({ label, value }) { return <article><small>{label}</small><strong>{value}</strong></article>; }
