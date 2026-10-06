@@ -25,6 +25,28 @@ service cloud.firestore {
         && get(membershipPath(tenantId)).data.role in roles;
     }
 
+    function hasVerifiedEmail() {
+      return signedIn()
+        && request.auth.token.email != null
+        && request.auth.token.email_verified == true;
+    }
+
+    function accessGrantPath(tenantId) {
+      return /databases/$(database)/documents/tenants/$(tenantId)/access/$(request.auth.token.email);
+    }
+
+    function hasActiveAccessGrant(tenantId) {
+      return hasVerifiedEmail()
+        && exists(accessGrantPath(tenantId))
+        && get(accessGrantPath(tenantId)).data.email == request.auth.token.email
+        && get(accessGrantPath(tenantId)).data.status == 'active'
+        && get(accessGrantPath(tenantId)).data.role in ['owner', 'admin', 'valuer', 'agent', 'viewer'];
+    }
+
+    function grantedRole(tenantId) {
+      return get(accessGrantPath(tenantId)).data.role;
+    }
+
     match /users/{uid} {
       allow read: if isPlatformAdmin() || (signedIn() && request.auth.uid == uid);
       allow create: if signedIn() && request.auth.uid == uid;
@@ -34,6 +56,12 @@ service cloud.firestore {
 
     match /userTenants/{uid} {
       allow read: if isPlatformAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create, update, delete: if isPlatformAdmin();
+    }
+
+    match /accessDirectory/{email} {
+      allow read: if isPlatformAdmin()
+        || (hasVerifiedEmail() && request.auth.token.email == email);
       allow create, update, delete: if isPlatformAdmin();
     }
 
@@ -50,11 +78,31 @@ service cloud.firestore {
       allow update: if isPlatformAdmin() || hasTenantRole(tenantId, ['owner', 'admin']);
       allow delete: if isPlatformAdmin();
 
+      match /access/{email} {
+        allow read: if isPlatformAdmin()
+          || hasTenantRole(tenantId, ['owner', 'admin'])
+          || (hasVerifiedEmail() && request.auth.token.email == email);
+        allow create, update, delete: if isPlatformAdmin()
+          || hasTenantRole(tenantId, ['owner', 'admin']);
+      }
+
       match /members/{uid} {
         allow read: if isPlatformAdmin()
           || (signedIn() && request.auth.uid == uid)
           || hasTenantRole(tenantId, ['owner', 'admin']);
-        allow create, update, delete: if isPlatformAdmin()
+
+        allow create: if isPlatformAdmin()
+          || hasTenantRole(tenantId, ['owner', 'admin'])
+          || (
+            signedIn()
+            && request.auth.uid == uid
+            && hasActiveAccessGrant(tenantId)
+            && request.resource.data.role == grantedRole(tenantId)
+            && request.resource.data.status == 'active'
+            && request.resource.data.email == request.auth.token.email
+          );
+
+        allow update, delete: if isPlatformAdmin()
           || hasTenantRole(tenantId, ['owner', 'admin']);
       }
     }

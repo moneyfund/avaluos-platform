@@ -15,9 +15,13 @@ import {
 } from 'lucide-react';
 import {
   addPlatformTenantMember,
+  PlatformAccessGrant,
   PlatformMember,
   PlatformTenant,
+  preauthorizeTenantAccess,
   removePlatformTenantMember,
+  revokeTenantAccess,
+  subscribeTenantAccessGrants,
   subscribeTenantMembers,
   updatePlatformTenantLicense,
   updatePlatformTenantMember,
@@ -57,11 +61,14 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
   const license = tenant.license || {};
   const [tab, setTab] = useState<ManageTab>(initialTab);
   const [members, setMembers] = useState<PlatformMember[]>([]);
+  const [accessGrants, setAccessGrants] = useState<PlatformAccessGrant[]>([]);
   const [membersLoading, setMembersLoading] = useState(true);
+  const [accessLoading, setAccessLoading] = useState(true);
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [selectedUserId, setSelectedUserId] = useState('');
+  const [accessEmail, setAccessEmail] = useState('');
   const [newRole, setNewRole] = useState<PlatformMember['role']>('agent');
   const [profile, setProfile] = useState({
     name: tenant.name || '',
@@ -100,12 +107,43 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
     });
   }, [tenant.id]);
 
+  useEffect(() => {
+    setAccessLoading(true);
+    return subscribeTenantAccessGrants(tenant.id, (nextGrants) => {
+      setAccessGrants(nextGrants);
+      setAccessLoading(false);
+    }, (cause) => {
+      console.error(cause);
+      setError('No fue posible cargar los accesos preautorizados.');
+      setAccessLoading(false);
+    });
+  }, [tenant.id]);
+
   const availableUsers = useMemo(() => {
     const memberIds = new Set(members.map((member) => member.uid));
     return users.filter((candidate) => !memberIds.has(candidate.id));
   }, [users, members]);
 
   const selectedUser = users.find((candidate) => candidate.id === selectedUserId);
+  const activeMemberEmails = useMemo(() => new Set(
+    members.map((member) => String(member.email || '').trim().toLowerCase()).filter(Boolean),
+  ), [members]);
+  const pendingAccess = useMemo(
+    () => accessGrants.filter((grant) => !activeMemberEmails.has(String(grant.email || '').trim().toLowerCase())),
+    [accessGrants, activeMemberEmails],
+  );
+  const authorizedSeatCount = useMemo(() => {
+    const emails = new Set<string>();
+    members.forEach((member) => {
+      const email = String(member.email || '').trim().toLowerCase();
+      if (email) emails.add(email);
+    });
+    accessGrants.forEach((grant) => {
+      const email = String(grant.email || '').trim().toLowerCase();
+      if (email) emails.add(email);
+    });
+    return emails.size;
+  }, [members, accessGrants]);
 
   const saveProfile = async (event: FormEvent) => {
     event.preventDefault();
@@ -155,6 +193,38 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
     } catch (cause) {
       console.error(cause);
       setError(cause instanceof Error ? cause.message : 'No fue posible actualizar la licencia.');
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const authorizeEmail = async () => {
+    setBusy('authorize-email');
+    setError('');
+    setMessage('');
+    try {
+      const email = await preauthorizeTenantAccess(tenant.id, accessEmail, newRole);
+      setAccessEmail('');
+      setMessage(`${email} quedó autorizado para ${tenant.name}. Al iniciar sesión con Google entrará directamente con rol ${roleLabel[newRole] || newRole}.`);
+    } catch (cause) {
+      console.error(cause);
+      setError(cause instanceof Error ? cause.message : 'No fue posible autorizar el correo.');
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const revokePendingAccess = async (grant: PlatformAccessGrant) => {
+    if (!window.confirm(`¿Revocar el acceso autorizado de ${grant.email}?`)) return;
+    setBusy(`grant:${grant.email}`);
+    setError('');
+    setMessage('');
+    try {
+      await revokeTenantAccess(tenant.id, grant.email);
+      setMessage('Acceso preautorizado revocado.');
+    } catch (cause) {
+      console.error(cause);
+      setError(cause instanceof Error ? cause.message : 'No fue posible revocar el acceso.');
     } finally {
       setBusy('');
     }
@@ -219,7 +289,7 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
 
       <nav className='tenant-manager-tabs'>
         <button type='button' className={tab === 'general' ? 'is-active' : ''} onClick={() => setTab('general')}><Building2 /> General</button>
-        <button type='button' className={tab === 'members' ? 'is-active' : ''} onClick={() => setTab('members')}><UsersRound /> Miembros <span>{members.length}</span></button>
+        <button type='button' className={tab === 'members' ? 'is-active' : ''} onClick={() => setTab('members')}><UsersRound /> Miembros <span>{authorizedSeatCount}</span></button>
         <button type='button' className={tab === 'license' ? 'is-active' : ''} onClick={() => setTab('license')}><KeyRound /> Licencia</button>
       </nav>
 
@@ -264,8 +334,36 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
         </form>}
 
         {tab === 'members' && <div className='tenant-members-view'>
+          <section className='tenant-add-member tenant-access-direct'>
+            <div className='tenant-section-heading'><div><strong>Autorizar acceso directo por correo</strong><small>Uso actual: {authorizedSeatCount} de {licenseForm.maxUsers} usuarios permitidos por la licencia.</small></div><ShieldCheck /></div>
+            <div className='tenant-add-member-controls'>
+              <input type='email' value={accessEmail} onChange={(e) => setAccessEmail(e.target.value)} placeholder='usuario@empresa.com' autoComplete='off' />
+              <select value={newRole} onChange={(e) => setNewRole(e.target.value as PlatformMember['role'])}>
+                {Object.entries(roleLabel).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              </select>
+              <button type='button' className='platform-primary-button' disabled={!accessEmail.trim() || busy === 'authorize-email' || authorizedSeatCount >= licenseForm.maxUsers} onClick={authorizeEmail}><Plus /> Autorizar</button>
+            </div>
+            <p className='tenant-helper'>No necesita iniciar sesión antes. Registra aquí el mismo correo de Google que utilizará la persona; en su primer acceso AVALNIC validará la autorización y activará automáticamente su membresía con este rol.</p>
+            {authorizedSeatCount >= licenseForm.maxUsers && <p className='tenant-helper is-warning'>La organización alcanzó el límite de usuarios de su licencia. Amplía el límite antes de autorizar otra cuenta.</p>}
+          </section>
+
+          {pendingAccess.length > 0 && <section className='tenant-member-list tenant-pending-access'>
+            <div className='tenant-section-heading'><div><strong>Pendientes de primer acceso</strong><small>Correos autorizados que todavía no han activado su membresía iniciando sesión con Google.</small></div><KeyRound /></div>
+            {pendingAccess.map((grant) => <div className='tenant-member-row is-pending' key={grant.email}>
+              <div className='tenant-member-person'>
+                <span>{grant.email.slice(0, 1).toUpperCase()}</span>
+                <div><strong>{grant.email}</strong><small>Acceso preautorizado</small></div>
+              </div>
+              <select value={grant.role} disabled>
+                <option>{roleLabel[grant.role] || grant.role}</option>
+              </select>
+              <span className='tenant-member-status is-pending'>Pendiente</span>
+              <button type='button' className='tenant-remove-member' disabled={busy === `grant:${grant.email}`} onClick={() => revokePendingAccess(grant)} aria-label='Revocar acceso'><Trash2 /></button>
+            </div>)}
+          </section>}
+
           <section className='tenant-add-member'>
-            <div className='tenant-section-heading'><div><strong>Asignar usuario registrado</strong><small>Uso actual: {members.length} de {licenseForm.maxUsers} usuarios permitidos por la licencia.</small></div><UserRoundCog /></div>
+            <div className='tenant-section-heading'><div><strong>Asignar usuario ya registrado</strong><small>Opción secundaria para cuentas que ya iniciaron sesión anteriormente.</small></div><UserRoundCog /></div>
             <div className='tenant-add-member-controls'>
               <select value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)}>
                 <option value=''>Selecciona un usuario…</option>
@@ -274,15 +372,15 @@ export default function TenantManagementDrawer({ tenant, users, initialTab = 'ge
               <select value={newRole} onChange={(e) => setNewRole(e.target.value as PlatformMember['role'])}>
                 {Object.entries(roleLabel).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
-              <button type='button' className='platform-primary-button' disabled={!selectedUserId || busy === 'add-member' || members.length >= licenseForm.maxUsers} onClick={addMember}><Plus /> Asignar</button>
+              <button type='button' className='platform-primary-button' disabled={!selectedUserId || busy === 'add-member' || authorizedSeatCount >= licenseForm.maxUsers} onClick={addMember}><Plus /> Asignar</button>
             </div>
-            {members.length >= licenseForm.maxUsers && <p className='tenant-helper is-warning'>La organización alcanzó el límite de usuarios de su licencia. Amplía el límite en la pestaña Licencia para agregar más cuentas.</p>}
-            {!availableUsers.length && <p className='tenant-helper'>No hay usuarios pendientes. Para agregar una cuenta nueva, pídele iniciar sesión una vez; aparecerá aquí aunque todavía no tenga organización.</p>}
+            {authorizedSeatCount >= licenseForm.maxUsers && <p className='tenant-helper is-warning'>La organización alcanzó el límite de usuarios de su licencia. Amplía el límite en la pestaña Licencia para agregar más cuentas.</p>}
+            {!availableUsers.length && <p className='tenant-helper'>No hay usuarios registrados pendientes de asignar. Para cuentas nuevas usa la autorización directa por correo de arriba.</p>}
           </section>
 
           <section className='tenant-member-list'>
             <div className='tenant-section-heading'><div><strong>Miembros de {tenant.name}</strong><small>Roles y estado de acceso al tenant.</small></div><UsersRound /></div>
-            {membersLoading ? <div className='tenant-members-empty'>Cargando miembros…</div> : members.length ? members.map((member) => <div className='tenant-member-row' key={member.uid}>
+            {membersLoading || accessLoading ? <div className='tenant-members-empty'>Cargando miembros…</div> : members.length ? members.map((member) => <div className='tenant-member-row' key={member.uid}>
               <div className='tenant-member-person'>
                 {member.photoURL ? <img src={member.photoURL} alt='' referrerPolicy='no-referrer' /> : <span>{String(member.displayName || member.email || 'U').slice(0, 1).toUpperCase()}</span>}
                 <div><strong>{member.displayName || 'Usuario'}</strong><small>{member.email}</small></div>

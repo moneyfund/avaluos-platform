@@ -29,11 +29,11 @@ function DisabledFeature({ label }) {
 
 function AppWorkspace() {
   const { user, signOutUser } = useAuth();
-  const { tenant, tenantId, membership, features, canAdmin } = useTenant();
+  const { tenant, tenantId, membership, features, canAdmin, canWrite } = useTenant();
   const location = useLocation();
   const platformAdmin = isRootPlatformAdmin(user);
   const canPersonalize = canAdmin || platformAdmin;
-  const defaultRoute = features.terrenos ? '/avaluos/terrenos' : features.casas ? '/avaluos/casas' : '/historial';
+  const defaultRoute = canWrite && features.terrenos ? '/avaluos/terrenos' : canWrite && features.casas ? '/avaluos/casas' : '/historial';
   const branding = tenant?.branding || {};
   const portalTheme = branding.portalTheme || {};
   const isAmy = tenantId === 'amyblandon';
@@ -83,9 +83,9 @@ function AppWorkspace() {
   if (pathname === '/avaluos') {
     workspaceContent = <Navigate to={defaultRoute} replace />;
   } else if (pathname === '/avaluos/terrenos') {
-    workspaceContent = features.terrenos ? <TerrenoWorkspace /> : <DisabledFeature label='Terrenos' />;
+    workspaceContent = canWrite && features.terrenos ? <TerrenoWorkspace /> : <Navigate to='/historial' replace />;
   } else if (pathname === '/avaluos/casas') {
-    workspaceContent = features.casas ? <CasaWorkspace /> : <DisabledFeature label='Casas' />;
+    workspaceContent = canWrite && features.casas ? <CasaWorkspace /> : <Navigate to='/historial' replace />;
   } else if (pathname === '/historial') {
     workspaceContent = <HistoryPage />;
   } else if (pathname === '/personalizacion') {
@@ -109,8 +109,8 @@ function AppWorkspace() {
 
         <nav className='client-nav' aria-label='Módulos de avalúos'>
           <small>MÓDULOS</small>
-          {features.terrenos && <NavLink to='/avaluos/terrenos' className={({ isActive }) => isActive ? 'is-active' : ''}><MapPinned /><span><strong>Terrenos</strong><em>Valoración de suelo</em></span></NavLink>}
-          {features.casas && <NavLink to='/avaluos/casas' className={({ isActive }) => isActive ? 'is-active' : ''}><Home /><span><strong>Casas</strong><em>Terreno + construcción</em></span></NavLink>}
+          {canWrite && features.terrenos && <NavLink to='/avaluos/terrenos' className={({ isActive }) => isActive ? 'is-active' : ''}><MapPinned /><span><strong>Terrenos</strong><em>Valoración de suelo</em></span></NavLink>}
+          {canWrite && features.casas && <NavLink to='/avaluos/casas' className={({ isActive }) => isActive ? 'is-active' : ''}><Home /><span><strong>Casas</strong><em>Terreno + construcción</em></span></NavLink>}
           <NavLink to='/historial' className={({ isActive }) => isActive ? 'is-active' : ''}><History /><span><strong>Historial</strong><em>Expedientes guardados</em></span></NavLink>
           {canPersonalize && <>
             <small className='client-nav-settings-label'>CONFIGURACIÓN</small>

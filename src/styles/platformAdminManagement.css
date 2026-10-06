@@ -117,7 +117,7 @@
 .tenant-form-grid label { display: grid; gap: 6px; }
 .tenant-form-grid label.is-wide { grid-column: 1 / -1; }
 .tenant-form-grid label > span, .tenant-add-member-controls + span { color: #746b5f; font-size: .7rem; font-weight: 800; }
-.tenant-form-grid input, .tenant-form-grid select, .tenant-add-member-controls select {
+.tenant-form-grid input, .tenant-form-grid select, .tenant-add-member-controls select, .tenant-add-member-controls input {
   width: 100%;
   min-height: 42px;
   border: 1px solid #ddd2c0;
@@ -128,7 +128,7 @@
   outline: none;
   transition: border-color .18s ease, box-shadow .18s ease;
 }
-.tenant-form-grid input:focus, .tenant-form-grid select:focus, .tenant-add-member-controls select:focus { border-color: #c8a64d; box-shadow: 0 0 0 3px rgba(212,175,55,.11); }
+.tenant-form-grid input:focus, .tenant-form-grid select:focus, .tenant-add-member-controls select:focus, .tenant-add-member-controls input:focus { border-color: #c8a64d; box-shadow: 0 0 0 3px rgba(212,175,55,.11); }
 .tenant-color-field { display: grid; grid-template-columns: 46px 1fr; gap: 7px; }
 .tenant-color-field input[type='color'] { padding: 5px; }
 
@@ -194,4 +194,19 @@
   .tenant-add-member-controls { grid-template-columns: 1fr; }
   .tenant-member-row { grid-template-columns: 1fr; padding: 13px 0; }
   .tenant-remove-member { width: 100%; }
+}
+
+.tenant-access-direct {
+  border-color: #dfc873 !important;
+  background: linear-gradient(145deg, #fffef9 0%, #fff8e8 100%) !important;
+}
+.tenant-pending-access { border-style: dashed !important; }
+.tenant-member-row.is-pending { opacity: .94; }
+.tenant-member-status.is-pending {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff8df;
+  border-color: #ead28a;
+  color: #94701a;
 }

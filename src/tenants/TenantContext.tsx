@@ -46,17 +46,49 @@ async function ensureUserProfile(user: any) {
 
 async function loadTenantForUser(user: any, tenantId: string) {
   if (!db || !tenantId) return null;
-  const [memberSnap, tenantSnap] = await Promise.all([
-    getDoc(doc(db, 'tenants', tenantId, 'members', user.uid)),
-    getDoc(doc(db, 'tenants', tenantId)),
-  ]);
+  const memberSnap = await getDoc(doc(db, 'tenants', tenantId, 'members', user.uid));
+  if (!memberSnap.exists()) return null;
 
-  if (!memberSnap.exists() || !tenantSnap.exists()) return null;
   const membership = memberSnap.data() as Membership;
-  const tenant = { id: tenantSnap.id, ...tenantSnap.data() } as any;
   if (membership.status !== 'active') return null;
+
+  const tenantSnap = await getDoc(doc(db, 'tenants', tenantId));
+  if (!tenantSnap.exists()) return null;
+  const tenant = { id: tenantSnap.id, ...tenantSnap.data() } as any;
   if (tenant.status && tenant.status !== 'active') return null;
   return { tenant, membership };
+}
+
+function normalizedUserEmail(user: any) {
+  return String(user?.email || '').trim().toLowerCase();
+}
+
+async function activatePreauthorizedMembership(user: any, tenantId: string) {
+  if (!db || !tenantId || !user?.uid || !user?.emailVerified) return null;
+  const email = normalizedUserEmail(user);
+  if (!email || email.includes('/')) return null;
+
+  const accessRef = doc(db, 'tenants', tenantId, 'access', email);
+  const accessSnap = await getDoc(accessRef);
+  if (!accessSnap.exists()) return null;
+
+  const grant = accessSnap.data() as any;
+  const allowedRoles = ['owner', 'admin', 'valuer', 'agent', 'viewer'];
+  if (grant.status !== 'active' || grant.email !== email || !allowedRoles.includes(grant.role)) return null;
+
+  await setDoc(doc(db, 'tenants', tenantId, 'members', user.uid), {
+    role: grant.role,
+    status: 'active',
+    email,
+    displayName: user.displayName || '',
+    photoURL: user.photoURL || '',
+    activatedFromPreauthorization: true,
+    activatedAt: serverTimestamp(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+
+  return loadTenantForUser(user, tenantId);
 }
 
 function requestedTenantIdFromUrl() {
@@ -72,7 +104,8 @@ async function resolveAssignedTenant(user: any) {
 
   const requestedTenantId = requestedTenantIdFromUrl();
   if (requestedTenantId) {
-    return loadTenantForUser(user, requestedTenantId);
+    return (await loadTenantForUser(user, requestedTenantId))
+      || (await activatePreauthorizedMembership(user, requestedTenantId));
   }
 
   const mappingSnap = await getDoc(doc(db, 'userTenants', user.uid));
@@ -84,12 +117,32 @@ async function resolveAssignedTenant(user: any) {
     ].filter(Boolean);
 
     for (const tenantId of Array.from(new Set(candidates))) {
-      const resolved = await loadTenantForUser(user, String(tenantId));
+      const resolved = (await loadTenantForUser(user, String(tenantId)))
+        || (await activatePreauthorizedMembership(user, String(tenantId)));
       if (resolved) return resolved;
     }
   }
 
-  return loadTenantForUser(user, DEFAULT_TENANT_ID);
+  const email = normalizedUserEmail(user);
+  if (user.emailVerified && email && !email.includes('/')) {
+    const directorySnap = await getDoc(doc(db, 'accessDirectory', email));
+    if (directorySnap.exists()) {
+      const directory = directorySnap.data() as any;
+      const candidates = [
+        directory.defaultTenantId,
+        ...(Array.isArray(directory.tenantIds) ? directory.tenantIds : []),
+      ].filter(Boolean);
+
+      for (const tenantId of Array.from(new Set(candidates))) {
+        const resolved = (await loadTenantForUser(user, String(tenantId)))
+          || (await activatePreauthorizedMembership(user, String(tenantId)));
+        if (resolved) return resolved;
+      }
+    }
+  }
+
+  return (await loadTenantForUser(user, DEFAULT_TENANT_ID))
+    || (await activatePreauthorizedMembership(user, DEFAULT_TENANT_ID));
 }
 
 function timestampToDate(value: any) {
@@ -132,8 +185,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         if (!resolved) {
           const requestedTenantId = requestedTenantIdFromUrl();
           setError(requestedTenantId
-            ? `Esta cuenta todavía no tiene acceso activo a la organización “${requestedTenantId}”. Solicita al administrador de AVALNIC que te asigne a ese espacio.`
-            : 'Esta cuenta todavía no tiene acceso a una organización activa. Inicia sesión una vez y solicita al administrador que te asigne una empresa.');
+            ? `Esta cuenta no está autorizada para la organización “${requestedTenantId}”. Verifica que el correo de Google coincida con el registrado por AVALNIC.`
+            : 'Esta cuenta no tiene una organización autorizada en AVALNIC. Contacta al administrador para registrar previamente tu correo.');
           return;
         }
         setTenant(resolved.tenant);

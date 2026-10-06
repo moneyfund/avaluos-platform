@@ -40,6 +40,15 @@ export type PlatformMember = {
   updatedAt?: any;
 };
 
+export type PlatformAccessGrant = {
+  email: string;
+  role: PlatformMember['role'];
+  status: 'active' | 'suspended';
+  createdAt?: any;
+  updatedAt?: any;
+  activatedUid?: string;
+};
+
 export type PlatformDashboardSnapshot = {
   tenants: PlatformTenant[];
   avaluos: any[];
@@ -118,6 +127,112 @@ const normalizeDomain = (value: string) => String(value || '')
   .toLowerCase()
   .replace(/^https?:\/\//, '')
   .replace(/\/$/, '');
+
+const normalizeAccessEmail = (value: string) => {
+  const email = String(value || '').trim().toLowerCase();
+  if (!email || email.length > 254 || email.includes('/') || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error('Ingresa un correo electrónico válido.');
+  }
+  return email;
+};
+
+export function subscribeTenantAccessGrants(
+  tenantId: string,
+  onData: (grants: PlatformAccessGrant[]) => void,
+  onError: (error: Error) => void,
+) {
+  if (!db || !tenantId) return () => undefined;
+  return onSnapshot(collection(db, 'tenants', tenantId, 'access'), (snapshot) => {
+    const grants = snapshot.docs
+      .map((item) => ({ email: item.id, ...item.data() } as PlatformAccessGrant))
+      .sort((a, b) => a.email.localeCompare(b.email, 'es'));
+    onData(grants);
+  }, onError);
+}
+
+async function upsertAccessDirectory(email: string, tenantId: string) {
+  if (!db) throw new Error('Firestore no está configurado.');
+  const directoryRef = doc(db, 'accessDirectory', email);
+  const directorySnap = await getDoc(directoryRef);
+  const current = directorySnap.exists() ? directorySnap.data() as any : {};
+  const tenantIds = Array.from(new Set([
+    ...(Array.isArray(current.tenantIds) ? current.tenantIds : []),
+    tenantId,
+  ]));
+  await setDoc(directoryRef, {
+    email,
+    tenantIds,
+    defaultTenantId: current.defaultTenantId || tenantId,
+    updatedAt: serverTimestamp(),
+    createdAt: current.createdAt || serverTimestamp(),
+  }, { merge: true });
+}
+
+async function removeFromAccessDirectory(email: string, tenantId: string) {
+  if (!db) throw new Error('Firestore no está configurado.');
+  const directoryRef = doc(db, 'accessDirectory', email);
+  const directorySnap = await getDoc(directoryRef);
+  if (!directorySnap.exists()) return;
+  const current = directorySnap.data() as any;
+  const tenantIds = (Array.isArray(current.tenantIds) ? current.tenantIds : [])
+    .filter((id: string) => id !== tenantId);
+  if (!tenantIds.length) {
+    await deleteDoc(directoryRef);
+    return;
+  }
+  await setDoc(directoryRef, {
+    tenantIds,
+    defaultTenantId: current.defaultTenantId === tenantId ? tenantIds[0] : (current.defaultTenantId || tenantIds[0]),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
+export async function preauthorizeTenantAccess(
+  tenantId: string,
+  rawEmail: string,
+  role: PlatformMember['role'],
+) {
+  if (!db) throw new Error('Firestore no está configurado.');
+  const email = normalizeAccessEmail(rawEmail);
+  const tenantRef = doc(db, 'tenants', tenantId);
+  const [tenantSnap, memberList, accessList] = await Promise.all([
+    getDoc(tenantRef),
+    getDocs(collection(db, 'tenants', tenantId, 'members')),
+    getDocs(collection(db, 'tenants', tenantId, 'access')),
+  ]);
+  if (!tenantSnap.exists()) throw new Error('La organización ya no existe.');
+
+  const tenant = tenantSnap.data() as any;
+  const maxUsers = Math.max(1, Number(tenant.license?.limits?.maxUsers || 10));
+  const occupiedEmails = new Set<string>();
+  memberList.docs.forEach((item) => {
+    const memberEmail = String(item.data().email || '').trim().toLowerCase();
+    if (memberEmail) occupiedEmails.add(memberEmail);
+  });
+  accessList.docs.forEach((item) => occupiedEmails.add(String(item.id).toLowerCase()));
+  if (!occupiedEmails.has(email) && occupiedEmails.size >= maxUsers) {
+    throw new Error(`La licencia permite un máximo de ${maxUsers} usuarios. Amplía el límite antes de autorizar otra cuenta.`);
+  }
+
+  const accessRef = doc(db, 'tenants', tenantId, 'access', email);
+  const accessSnap = await getDoc(accessRef);
+  await setDoc(accessRef, {
+    email,
+    role,
+    status: 'active',
+    createdAt: accessSnap.exists() ? accessSnap.data().createdAt || serverTimestamp() : serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+  await upsertAccessDirectory(email, tenantId);
+  return email;
+}
+
+export async function revokeTenantAccess(tenantId: string, rawEmail: string) {
+  if (!db) throw new Error('Firestore no está configurado.');
+  const email = normalizeAccessEmail(rawEmail);
+  await deleteDoc(doc(db, 'tenants', tenantId, 'access', email));
+  await removeFromAccessDirectory(email, tenantId);
+}
 
 export async function createPlatformTenant(input: any, createdBy: string) {
   if (!db) throw new Error('Firestore no está configurado.');
@@ -325,6 +440,8 @@ export async function addPlatformTenantMember(tenantId: string, user: any, role:
     createdAt: currentMapping.createdAt || serverTimestamp(),
   }, { merge: true });
 
+  await preauthorizeTenantAccess(tenantId, String(user.email || ''), role);
+
   await updateDoc(tenantRef, {
     membersCount: existingMember.exists() ? memberList.size : memberList.size + 1,
     updatedAt: serverTimestamp(),
@@ -337,10 +454,28 @@ export async function updatePlatformTenantMember(
   patch: Partial<Pick<PlatformMember, 'role' | 'status'>>,
 ) {
   if (!db) throw new Error('Firestore no está configurado.');
-  await updateDoc(doc(db, 'tenants', tenantId, 'members', uid), {
+  const memberRef = doc(db, 'tenants', tenantId, 'members', uid);
+  const memberSnap = await getDoc(memberRef);
+  if (!memberSnap.exists()) throw new Error('El miembro ya no existe.');
+  const current = memberSnap.data() as PlatformMember;
+
+  await updateDoc(memberRef, {
     ...patch,
     updatedAt: serverTimestamp(),
   });
+
+  const email = String(current.email || '').trim().toLowerCase();
+  if (email) {
+    await setDoc(doc(db, 'tenants', tenantId, 'access', email), {
+      email,
+      role: patch.role || current.role,
+      status: patch.status || current.status,
+      activatedUid: uid,
+      updatedAt: serverTimestamp(),
+      createdAt: serverTimestamp(),
+    }, { merge: true });
+    await upsertAccessDirectory(email, tenantId);
+  }
 }
 
 export async function removePlatformTenantMember(tenantId: string, uid: string) {
@@ -349,7 +484,10 @@ export async function removePlatformTenantMember(tenantId: string, uid: string) 
   const memberSnap = await getDoc(memberRef);
   if (!memberSnap.exists()) return;
 
+  const member = memberSnap.data() as PlatformMember;
   await deleteDoc(memberRef);
+  const memberEmail = String(member.email || '').trim().toLowerCase();
+  if (memberEmail) await revokeTenantAccess(tenantId, memberEmail);
 
   const mappingRef = doc(db, 'userTenants', uid);
   const mappingSnap = await getDoc(mappingRef);
