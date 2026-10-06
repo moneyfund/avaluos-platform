@@ -4,7 +4,7 @@ import { VARA2_A_M2 } from '../../../core/avaluos/constants/coeficientesCasas';
 import InformeGeneralSection from './InformeGeneralSection';
 import ProgressiveFormShell from './ProgressiveFormShell';
 
-const base = 'rounded-xl border border-slate-700 bg-slate-900 p-3';
+const base = 'avaluo-field';
 const topografias = ['Plano','Semi plano','Ondulado','Inclinado','Muy inclinado','Quebrado'];
 const formas = ['Regular','Irregular leve','Irregular compleja','Esquinero','Fondo amplio','Frente amplio'];
 const suelos = ['Suelo firme','Suelo arcilloso','Suelo rocoso','Suelo arenoso','Suelo húmedo','Suelo mixto'];
@@ -162,10 +162,10 @@ export default function CasaForm({value,onChange,onSubmit,loading}){
 }
 
 function StepIntro({eyebrow,title,copy}){return <div className='progressive-step-intro'><span>{eyebrow}</span><h3>{title}</h3><p>{copy}</p></div>}
-function Section({title,children}){return <section className='mt-4'><h3 className='mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400'>{title}</h3><div className='grid gap-4 md:grid-cols-2'>{children}</div></section>}
-function field(l,k,v,c){return <label className={base}>{l}<input className='mt-2 w-full rounded bg-slate-800 p-2' value={v[k]||''} onChange={e=>c(k,e.target.value)}/></label>}
-function num(l,k,v,c){return <label className={base}>{l}<input type='number' min='0' step='0.01' className='mt-2 w-full rounded bg-slate-800 p-2' value={v[k]||''} onChange={e=>c(k,Number(e.target.value))}/></label>}
-function select(l,val,opts,c){return <label className={base}>{l}<select className='mt-2 w-full rounded bg-slate-800 p-2' value={val} onChange={e=>c(e.target.value)}><option value=''>Seleccionar</option>{opts.map(o=>typeof o==='string'?<option key={o}>{o}</option>:<option key={o.value} value={o.value}>{o.label}</option>)}</select></label>}
-function tog(l,k,v,c){return <label className={base}>{l}<input type='checkbox' className='ml-3' checked={!!v[k]} onChange={e=>c(k,e.target.checked)}/></label>}
-function Servicios({value,onChange}){return <div className={base}><p>Servicios básicos</p>{[['agua','Agua'],['energia','Energía'],['drenaje','Drenaje'],['internet','Internet']].map(([k,l])=><label key={k} className='mr-3 block text-sm'><input type='checkbox' checked={!!value[k]} onChange={e=>onChange({...value,[k]:e.target.checked})}/> {l}</label>)}</div>}
+function Section({title,children}){return <section className='avaluo-section'><div className='avaluo-section-heading'><span>Bloque técnico</span><h3>{title}</h3></div><div className='avaluo-section-grid'>{children}</div></section>}
+function field(l,k,v,c){return <label className={base}><span className='avaluo-field-label'>{l}</span><input className='avaluo-control' value={v[k]||''} onChange={e=>c(k,e.target.value)}/></label>}
+function num(l,k,v,c){return <label className={base}><span className='avaluo-field-label'>{l}</span><input type='number' min='0' step='0.01' className='avaluo-control' value={v[k]||''} onChange={e=>c(k,Number(e.target.value))}/></label>}
+function select(l,val,opts,c){return <label className={base}><span className='avaluo-field-label'>{l}</span><select className='avaluo-control' value={val} onChange={e=>c(e.target.value)}><option value=''>Seleccionar</option>{opts.map(o=>typeof o==='string'?<option key={o}>{o}</option>:<option key={o.value} value={o.value}>{o.label}</option>)}</select></label>}
+function tog(l,k,v,c){return <label className='avaluo-toggle-card'><span>{l}</span><input type='checkbox' checked={!!v[k]} onChange={e=>c(k,e.target.checked)}/></label>}
+function Servicios({value,onChange}){const total=[['agua','Agua'],['energia','Energía'],['drenaje','Drenaje'],['internet','Internet']].filter(([k])=>!!value[k]).length;return <div className='avaluo-choice-card'><div className='avaluo-choice-heading'><strong>Servicios básicos</strong><small>{total?total+' disponible(s)':'Marca los servicios presentes'}</small></div><div className='avaluo-choice-grid'>{[['agua','Agua'],['energia','Energía'],['drenaje','Drenaje'],['internet','Internet']].map(([k,l])=><label key={k} className='avaluo-choice'><input type='checkbox' checked={!!value[k]} onChange={e=>onChange({...value,[k]:e.target.checked})}/><span>{l}</span></label>)}</div></div>}
 const cap=(s)=>s.replace(/([A-Z])/g,' $1').replace(/^./,m=>m.toUpperCase());

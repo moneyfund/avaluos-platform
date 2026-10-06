@@ -13,6 +13,7 @@ import './styles/platformAdminFunctional.css';
 import './styles/accessLanding.css';
 import './styles/clientWorkspacePremium.css';
 import './styles/workspaceEnhancements.css';
+import './styles/valuationWorkbench.css';
 import './styles/platformAdminInternational.css';
 import './styles/publicSite.css';
 

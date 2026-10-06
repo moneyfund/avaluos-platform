@@ -6,23 +6,36 @@ const pct = (suggested: number, applied: number) => suggested > 0 ? ((applied / 
 export default function BasePriceReferenceEditor({ suggestedValue, appliedValue, unit, edited, reason, detail, extraordinary, onChange, onReset }: any) {
   const variation = pct(Number(suggestedValue || 0), Number(appliedValue || 0));
   const outOfRange = isOutOfRecommendedRange(suggestedValue, appliedValue);
-  return <section className='mt-5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-4 text-slate-100 md:col-span-2'>
-    <div className='flex flex-wrap items-center justify-between gap-3'><h3 className='text-sm font-semibold uppercase tracking-wide text-emerald-100'>Referencia base de mercado</h3><span className={edited ? 'rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-100' : 'rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-100'}>{edited ? 'Referencia ajustada manualmente' : 'Referencia territorial automática'}</span></div>
-    <div className='mt-4 grid gap-4 md:grid-cols-3'>
-      <Info label='Precio sugerido por la zona' value={`${money(suggestedValue)} / ${unit === 'USD_MNZ' ? 'manzana' : 'm²'}`} />
-      <label className='rounded-xl border border-slate-700 bg-slate-900 p-3'><span className='text-xs text-slate-400'>Precio aplicado al avalúo</span><input type='number' min='0.01' step='0.01' className='mt-2 w-full rounded bg-slate-800 p-2 text-lg font-semibold' value={appliedValue || ''} onChange={(e) => onChange({ precioBaseAplicado: Number(e.target.value), precioBaseFueEditado: Number(e.target.value) !== Number(suggestedValue) })} /></label>
-      <Info label='Unidad' value={unitLabel(unit)} />
-      <Info label='Variación' value={`${variation >= 0 ? '+' : ''}${variation.toFixed(2)}%`} />
-      <Info label='Equivalente' value={unit === 'USD_MNZ' ? `${money(Number(appliedValue || 0) / 7042.25)} / m²` : `${money(Number(appliedValue || 0) * 7042.25)} / manzana`} />
-      <div className='rounded-xl border border-slate-700 bg-slate-900 p-3'><p className='text-xs text-slate-400'>Estado</p><p className='font-semibold'>{edited ? `Fuente: ${getReasonLabel(reason) || 'pendiente de justificar'}` : 'Usando referencia territorial'}</p></div>
+
+  return <section className='market-reference-panel'>
+    <div className='market-reference-heading'>
+      <div><span>REFERENCIA DE MERCADO</span><h3>Base territorial del avalúo</h3><p>Referencia usada por el expediente actual. Un ajuste manual no modifica la tabla maestra de precios.</p></div>
+      <em className={edited ? 'is-edited' : ''}>{edited ? 'Ajuste manual activo' : 'Referencia automática'}</em>
     </div>
-    <button type='button' onClick={onReset} className='mt-4 rounded-xl border border-emerald-300 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-400/10'>Restaurar sugerencia</button>
-    {edited && <div className='mt-4 grid gap-4 md:grid-cols-2'>
-      <label className='rounded-xl border border-slate-700 bg-slate-900 p-3'><span>Motivo del ajuste</span><select className='mt-2 w-full rounded bg-slate-800 p-2' value={reason || ''} onChange={(e) => onChange({ motivoAjustePrecioBase: e.target.value })}><option value=''>Seleccionar</option>{BASE_PRICE_ADJUSTMENT_REASONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-      <label className='rounded-xl border border-slate-700 bg-slate-900 p-3'><span>{reason === 'otro_ajuste_tecnico' || outOfRange ? 'Detalle técnico obligatorio' : 'Observación técnica opcional'}</span><input className='mt-2 w-full rounded bg-slate-800 p-2' value={detail || ''} onChange={(e) => onChange({ detalleAjustePrecioBase: e.target.value })} placeholder='Microzona, comparables o condición particular' /></label>
+
+    <div className='market-reference-grid'>
+      <Info label='Precio sugerido por zona' value={money(suggestedValue) + ' / ' + (unit === 'USD_MNZ' ? 'manzana' : 'm²')} />
+      <label className='market-reference-edit'><span>Precio aplicado al avalúo</span><input type='number' min='0.01' step='0.01' value={appliedValue || ''} onChange={(e) => onChange({ precioBaseAplicado: Number(e.target.value), precioBaseFueEditado: Number(e.target.value) !== Number(suggestedValue) })} /><small>Editable solo para este expediente.</small></label>
+      <Info label='Unidad de referencia' value={unitLabel(unit)} />
+      <Info label='Variación vs. sugerencia' value={(variation >= 0 ? '+' : '') + variation.toFixed(2) + '%'} tone={Math.abs(variation) > 15 ? 'warning' : 'neutral'} />
+      <Info label='Equivalente técnico' value={unit === 'USD_MNZ' ? money(Number(appliedValue || 0) / 7042.25) + ' / m²' : money(Number(appliedValue || 0) * 7042.25) + ' / manzana'} />
+      <Info label='Estado de referencia' value={edited ? 'Fuente: ' + (getReasonLabel(reason) || 'pendiente de justificar') : 'Usando referencia territorial'} />
+    </div>
+
+    <div className='market-reference-actions'>
+      <button type='button' onClick={onReset}>Restaurar sugerencia territorial</button>
+      <small>Unidad activa: {unitShort(unit)}</small>
+    </div>
+
+    {edited && <div className='market-reference-adjustment'>
+      <label><span>Motivo del ajuste</span><select value={reason || ''} onChange={(e) => onChange({ motivoAjustePrecioBase: e.target.value })}><option value=''>Seleccionar</option>{BASE_PRICE_ADJUSTMENT_REASONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label><span>{reason === 'otro_ajuste_tecnico' || outOfRange ? 'Detalle técnico obligatorio' : 'Observación técnica opcional'}</span><input value={detail || ''} onChange={(e) => onChange({ detalleAjustePrecioBase: e.target.value })} placeholder='Microzona, comparables o condición particular' /></label>
     </div>}
-    {outOfRange && <div className='mt-4 rounded-xl border border-amber-400/50 bg-amber-500/10 p-3 text-amber-50'><p className='font-semibold'>El precio ingresado se encuentra fuera del rango técnico recomendado para esta zona. Revise el dato o confirme que se trata de una condición extraordinaria.</p><label className='mt-2 block text-sm'><input type='checkbox' checked={!!extraordinary} onChange={(e) => onChange({ confirmacionValorExtraordinario: e.target.checked })} /> Confirmo que este valor corresponde a una condición extraordinaria de la microzona o del inmueble.</label></div>}
-    <p className='mt-3 text-xs text-slate-300'>El ajuste usa {unitShort(unit)} solo en este avalúo y no modifica precios maestros.</p>
+
+    {outOfRange && <div className='market-reference-warning'><strong>Valor fuera del rango técnico recomendado.</strong><p>Revise el dato o confirme que corresponde a una condición extraordinaria de la microzona o del inmueble.</p><label><input type='checkbox' checked={!!extraordinary} onChange={(e) => onChange({ confirmacionValorExtraordinario: e.target.checked })} /><span>Confirmo la condición extraordinaria para este expediente.</span></label></div>}
   </section>;
 }
-function Info({ label, value }: any) { return <div className='rounded-xl border border-slate-700 bg-slate-900 p-3'><p className='text-xs text-slate-400'>{label}</p><p className='text-lg font-semibold'>{value}</p></div>; }
+
+function Info({ label, value, tone = 'neutral' }: any) {
+  return <div className={'market-reference-info is-' + tone}><span>{label}</span><strong>{value}</strong></div>;
+}

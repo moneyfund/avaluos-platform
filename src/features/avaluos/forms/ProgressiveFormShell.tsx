@@ -41,30 +41,49 @@ export default function ProgressiveFormShell({
   };
 
   return <div id={formId} className='progressive-form'>
-    <div className='progressive-form-overview'>
-      <div className='progressive-form-progress-copy'>
-        <span>ETAPA {currentStep + 1} DE {steps.length}</span>
-        <strong>{active?.title}</strong>
-        {active?.description && <small>{active.description}</small>}
+    <aside className='progressive-form-overview'>
+      <div className='progressive-form-overview-top'>
+        <div className='progressive-form-progress-copy'>
+          <span>EXPEDIENTE EN CURSO</span>
+          <strong>{active?.title}</strong>
+          {active?.description && <small>{active.description}</small>}
+        </div>
+        <div className='progressive-form-progress-badge' aria-label={'Progreso ' + Math.round(progress) + '%'}>
+          <strong>{Math.round(progress)}%</strong>
+          <small>completado</small>
+        </div>
       </div>
-      <div className='progressive-form-meter' aria-label={`Progreso ${Math.round(progress)}%`}>
-        <i style={{ width: `${progress}%` }} />
+
+      <div className='progressive-form-meter' aria-hidden='true'>
+        <i style={{ width: progress + '%' }} />
       </div>
-      <div className='progressive-form-steps'>
+
+      <div className='progressive-form-steps' aria-label='Etapas del avalúo'>
         {steps.map((step, index) => <button
           type='button'
           key={step.title}
-          className={`${index === currentStep ? 'is-active' : ''} ${index < currentStep ? 'is-complete' : ''}`}
+          className={(index === currentStep ? 'is-active ' : '') + (index < currentStep ? 'is-complete' : '')}
           onClick={() => moveTo(index)}
           aria-current={index === currentStep ? 'step' : undefined}
         >
           <span>{index < currentStep ? <Check /> : index + 1}</span>
-          <em>{step.title}</em>
+          <em><strong>{step.title}</strong>{step.description && <small>{step.description}</small>}</em>
         </button>)}
       </div>
-    </div>
 
-    <div className='progressive-form-stage' key={currentStep}>{children}</div>
+      <div className='progressive-form-assurance'>
+        <i />
+        <span><strong>Metodología protegida</strong><small>La interfaz organiza el expediente sin alterar el motor de cálculo.</small></span>
+      </div>
+    </aside>
+
+    <section className='progressive-form-stage' key={currentStep}>
+      <div className='progressive-stage-toolbar'>
+        <span>ETAPA {String(currentStep + 1).padStart(2, '0')}</span>
+        <small>{currentStep + 1} de {steps.length}</small>
+      </div>
+      {children}
+    </section>
 
     <div className='progressive-form-actions'>
       <button type='button' className='progressive-secondary' disabled={isFirst || loading} onClick={() => moveTo(currentStep - 1)}>
